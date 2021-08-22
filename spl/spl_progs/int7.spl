@@ -1,0 +1,33 @@
+// set MODE FLAG (in PROCESS TABLE) to syscall number
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 9] = 5;
+
+// store value of userSP in R0
+alias userSP R0;
+userSP = SP;
+
+// switch to kernel stack
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 13] = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 11]*512 - 1;
+
+// get arg1 from user stack
+alias physicalPage R1;
+alias offset R2;
+alias fileDesc R3;
+physicalPage = [PTBR + 2*(userSP-4)/512];
+offset = (userSP-4)%512;
+fileDesc = [physicalPage*512 + offset];
+
+if (fileDesc != -2) then
+    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = -1;
+else
+    print [[PTBR + 2*(userSP-3)/512]*512 + (userSP-3)%512];
+    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = 0;
+endif;
+
+// restore SP to userSP
+SP = userSP;
+
+// reset MODE FLAG (in PROCESS TABLE) to 0
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 9] = 0;
+
+ireturn;

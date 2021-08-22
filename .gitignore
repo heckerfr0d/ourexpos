@@ -1,0 +1,14 @@
+*
+!download.sh
+!Makefile
+!README.md
+!.gitignore
+!xfs-interface
+xfs-interface/*
+!xfs-interface/load
+!*l
+*l/*
+!*l/*_progs
+!*l/samples
+!*l/*_progs/*
+!*l/samples/*

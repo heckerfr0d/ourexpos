@@ -1,0 +1,23 @@
+type
+Student
+{
+    str name;
+    int marks;
+}
+endtype
+int main()
+{
+decl
+    Student s;
+    int ret;
+enddecl
+begin
+    ret = exposcall ("Heapset");
+    s = exposcall ("Alloc");
+    s.name = "John";
+    s.marks = 89;
+    ret = exposcall ( "Write" , -2, s.name );
+    ret = exposcall ( "Write" , -2, s.marks );
+    return 0;
+end
+}

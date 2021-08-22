@@ -1,0 +1,6 @@
+if ([SP-5]=="Write") then
+    alias retAdd R5;
+    breakpoint;
+    [SP-5] = 5;
+    breakpoint;
+endif ;
