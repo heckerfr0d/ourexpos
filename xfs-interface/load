@@ -6,5 +6,6 @@ load --exec ../expl/expl_progs/even.xsm
 load --idle ../expl/expl_progs/idle.xsm
 load --exhandler ../spl/spl_progs/exception.xsm
 load --int=timer ../spl/spl_progs/sample_timer.xsm
-load --int=10 ../spl/spl_progs/haltprog.xsm
+load --int=10 ../spl/spl_progs/int10.xsm
+load --module 5 ../spl/spl_progs/mod5.xsm
 load --module 7 ../spl/spl_progs/mod7.xsm

@@ -12,3 +12,5 @@ xfs-interface/*
 !*l/samples
 !*l/*_progs/*
 !*l/samples/*
+!.vscode
+!.vscode/*

@@ -1,0 +1,62 @@
+{
+    "version": "2.0.0",
+    "presentation": {
+      "echo": false,
+      "reveal": "always",
+      "focus": false,
+      "panel": "shared",
+      "showReuseMessage": true
+    },
+    "tasks": [
+      {
+        "label": "(s/ex)pl compile",
+        "type": "shell",
+        "command": "ext=${fileExtname} ; ext=${ext:1} ; cd ${workspaceFolder}/${ext} ; tput setaf 1; ./${ext} ${file} ; tput setaf 2 ; echo done! ; tput setaf 0 ;",
+        "isBackground": true,
+        "problemMatcher": [],
+        "group": "build"
+      },
+      {
+        "label": "xfs-load",
+        "type": "shell",
+        // replace 'load' with the name of your batch file with xfs commands
+        "command": "./xfs-interface run load && tput setaf 2; echo done!",
+        "options": {
+          "cwd": "${workspaceFolder}/xfs-interface",
+          "shell": {
+            "executable": "",
+            "args": []
+          }
+        },
+        "isBackground": true,
+        "problemMatcher": [],
+        "group": "build",
+        "dependsOn": "(s/ex)pl compile"
+      },
+      {
+        "label": "xsm-run",
+        "type": "shell",
+        "command": "./xsm",
+        // replace 10 with required timer value
+        "args": ["--debug", "--timer", "10"],
+        "options": {
+          "cwd": "${workspaceFolder}/xsm",
+          "shell": {
+            "executable": "",
+            "args": []
+          }
+        },
+        "isBackground": false,
+        "problemMatcher": [],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": true,
+          "panel": "shared",
+          "showReuseMessage": true,
+          "clear": false
+        }
+      }
+    ]
+  }

@@ -1,4 +1,4 @@
-breakpoint;
+// breakpoint;
 // Store SP in PROCESS_TABLE
 [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 13] = SP;
 
@@ -13,36 +13,43 @@ currentPID = [SYSTEM_STATUS_TABLE+1];
 alias process_table_entry R1;
 process_table_entry = PROCESS_TABLE + currentPID*16;
 
-[process_table_entry + 12] = SP%512;
-[process_table_entry + 14] = PTBR;
-[process_table_entry + 15] = PTLR;
-
 [process_table_entry + 4] = READY;
 
-alias newPID R2;
-newPID = (currentPID + 1)%3;
+alias i R4;
+i=PROCESS_TABLE;
+while (i<PROCESS_TABLE+256) do
+	[i] = [i] + 1;
+	i = i + 16;
+endwhile;
 
-alias new_process_table R3;
-new_process_table = PROCESS_TABLE + newPID*16;
+// alias newPID R2;
+// newPID = (currentPID + 1)%3;
 
-//Set back Kernel SP, PTBR , PTLR
-SP =  [new_process_table + 11] * 512 + [new_process_table + 12] ;
-PTBR = [new_process_table + 14];
-PTLR = [new_process_table + 15];
+// alias new_process_table R3;
+// new_process_table = PROCESS_TABLE + newPID*16;
 
-[SYSTEM_STATUS_TABLE + 1] = newPID;
+// //Set back Kernel SP, PTBR , PTLR
+// SP =  [new_process_table + 11] * 512 + [new_process_table + 12] ;
+// PTBR = [new_process_table + 14];
+// PTLR = [new_process_table + 15];
 
-if([new_process_table + 4] == CREATED) then
-	[new_process_table + 4] = RUNNING;
-	SP = [new_process_table + 13];
-	ireturn;
-endif;
+// [SYSTEM_STATUS_TABLE + 1] = newPID;
 
-[new_process_table + 4] = RUNNING;
+// if([new_process_table + 4] == CREATED) then
+// 	[new_process_table + 4] = RUNNING;
+// 	SP = [new_process_table + 13];
+// 	ireturn;
+// endif;
+
+// [new_process_table + 4] = RUNNING;
+
+call SCHEDULER;
 
 restore;
 
 SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 13];
 
-breakpoint;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 9] = 0;
+
+// breakpoint;
 ireturn;
