@@ -1,24 +1,22 @@
 int main()
 {
 decl
-    int i,num, flag, mod;
+    int i,num, flag, temp;
 enddecl
 begin
     num=2;
     while ( num < 100 ) do
         flag=0;
         i=2;
-        mod = num/2;
-        while(i<mod) do
-            mod = num%i;
-            if(mod==0) then
+        while(i<=(num/2)) do
+            if((num%i)==0) then
                 flag=1;
                 break;
             endif;
             i = i + 1;
         endwhile;
         if(flag==0) then
-            mod = exposcall ( "Write" , -2, num );
+            temp = exposcall ( "Write" , -2, num );
         endif;
         num = num + 1;
     endwhile;

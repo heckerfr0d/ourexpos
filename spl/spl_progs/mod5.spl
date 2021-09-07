@@ -8,8 +8,8 @@ alias process_table_entry R1;
 process_table_entry = PROCESS_TABLE + currentPID*16;
 
 [process_table_entry + 12] = SP%512;
-[process_table_entry + 14] = PTBR;
-[process_table_entry + 15] = PTLR;
+// [process_table_entry + 14] = PTBR;
+// [process_table_entry + 15] = PTLR;
 
 alias i R3;
 alias newPID R4;
@@ -39,7 +39,7 @@ if([process_table_entry + 4]==CREATED) then
 endif;
 
 [process_table_entry + 4] = RUNNING;
-BP = [[process_table_entry + 11]*512 + [process_table_entry + 12]];
+BP = [SP];
 SP = SP-1;
 
 return;
