@@ -8,3 +8,5 @@ load --int=timer ../spl/spl_progs/sample_timer.xsm
 load --int=10 ../spl/spl_progs/int10.xsm
 load --module 5 ../spl/spl_progs/mod5.xsm
 load --module 7 ../spl/spl_progs/mod7.xsm
+load --module 0 ../spl/spl_progs/mod0.xsm
+load --module 4 ../spl/spl_progs/mod4.xsm
