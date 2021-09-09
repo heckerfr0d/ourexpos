@@ -6,10 +6,6 @@ loadi(3, 16);
 loadi(4, 17);
 loadi(5, 18);
 
-// load scheduler(mod5)
-loadi(50,63);
-loadi(51,64);
-
 // load int7
 loadi(16, 29);
 loadi(17, 30);
@@ -17,6 +13,18 @@ loadi(17, 30);
 // load exit code
 loadi(22, 35);
 loadi(23, 36);
+
+// load RESOURCE_MANAGER(mod0)
+loadi(40, 53);
+loadi(41, 54);
+
+// load DEVICE_MANAGER(mod4)
+loadi(48, 61);
+loadi(49, 62);
+
+// load scheduler(mod5)
+loadi(50,63);
+loadi(51,64);
 
 // load library
 loadi(63, 13);
@@ -29,8 +37,10 @@ loadi(66, 8);
 // load program2
 loadi(83, 69);
 
-// load program3
-loadi(89, 70);
+// // load program3
+// loadi(89, 70);
+
+[TERMINAL_STATUS_TABLE] = 0;
 
 PTBR = PAGE_TABLE_BASE + 20;
 // INIT
@@ -119,51 +129,52 @@ PTBR = PAGE_TABLE_BASE + 40;
 [86*512] = [83*512+1];
 
 
-PTBR = PAGE_TABLE_BASE + 60;
+// PTBR = PAGE_TABLE_BASE + 60;
 
-// Program3
-// Library
-[PTBR+0] = 63;
-[PTBR+1] = "0100";
-[PTBR+2] = 64;
-[PTBR+3] = "0100";
+// // Program3
+// // Library
+// [PTBR+0] = 63;
+// [PTBR+1] = "0100";
+// [PTBR+2] = 64;
+// [PTBR+3] = "0100";
 
-// Heap
-[PTBR+4] = 90;
-[PTBR+5] = "0110";
-[PTBR+6] = 91;
-[PTBR+7] = "0110";
+// // Heap
+// [PTBR+4] = 90;
+// [PTBR+5] = "0110";
+// [PTBR+6] = 91;
+// [PTBR+7] = "0110";
 
-// Code
-[PTBR+8] = 89;
-[PTBR+9] = "0100";
-[PTBR+10] = -1;
-[PTBR+11] = "0000";
-[PTBR+12] = -1;
-[PTBR+13] = "0000";
-[PTBR+14] = -1;
-[PTBR+15] = "0000";
+// // Code
+// [PTBR+8] = 89;
+// [PTBR+9] = "0100";
+// [PTBR+10] = -1;
+// [PTBR+11] = "0000";
+// [PTBR+12] = -1;
+// [PTBR+13] = "0000";
+// [PTBR+14] = -1;
+// [PTBR+15] = "0000";
 
-// Stack
-[PTBR+16] = 92;
-[PTBR+17] = "0110";
-[PTBR+18] = 93;
-[PTBR+19] = "0110";
+// // Stack
+// [PTBR+16] = 92;
+// [PTBR+17] = "0110";
+// [PTBR+18] = 93;
+// [PTBR+19] = "0110";
 
 
-// Program3
-[PROCESS_TABLE+49] = 3;
-[PROCESS_TABLE+52] = CREATED;
-[PROCESS_TABLE+59] = 94;
-[PROCESS_TABLE+60] = 0;
-[PROCESS_TABLE+61] = 8*512;
-[PROCESS_TABLE+62] = PAGE_TABLE_BASE+60;
-[PROCESS_TABLE+63] = 10;
+// // Program3
+// [PROCESS_TABLE+49] = 3;
+// [PROCESS_TABLE+52] = CREATED;
+// [PROCESS_TABLE+59] = 94;
+// [PROCESS_TABLE+60] = 0;
+// [PROCESS_TABLE+61] = 8*512;
+// [PROCESS_TABLE+62] = PAGE_TABLE_BASE+60;
+// [PROCESS_TABLE+63] = 10;
 
-[92*512] = [89*512+1];
+// [92*512] = [89*512+1];
 
 
 // set all other entries to TERMINATED
+[PROCESS_TABLE+52] = TERMINATED;
 [PROCESS_TABLE+68] = TERMINATED;
 [PROCESS_TABLE+84] = TERMINATED;
 [PROCESS_TABLE+100] = TERMINATED;

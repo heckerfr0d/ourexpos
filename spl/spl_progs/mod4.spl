@@ -1,0 +1,19 @@
+alias functionNum R1;
+alias currentPID R2;
+
+if(functionNum == 3) then
+    multipush(R1, R2);
+
+    functionNum = 8;
+    call RESOURCE_MANAGER;
+
+    multipop(R1, R2);
+    print R3;
+    multipush(R1, R2);
+
+    functionNum = 9;
+    call RESOURCE_MANAGER;
+
+    multipop(R1, R2);
+    return;
+endif;
