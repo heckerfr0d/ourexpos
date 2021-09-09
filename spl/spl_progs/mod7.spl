@@ -6,6 +6,18 @@ loadi(3, 16);
 loadi(4, 17);
 loadi(5, 18);
 
+// load resource_manager(mod0)
+loadi(40,53);
+loadi(41,54);
+
+// load device_manager(mod4)
+loadi(48,61);
+loadi(49,62);
+
+// load scheduler(mod5)
+loadi(50,63);
+loadi(51,64);
+
 // load int7
 loadi(16, 29);
 loadi(17, 30);
@@ -40,7 +52,7 @@ loadi(83, 69);
 // // load program3
 // loadi(89, 70);
 
-[TERMINAL_STATUS_TABLE] = 0;
+[TERMINAL_STATUS_TABLE]=0;
 
 PTBR = PAGE_TABLE_BASE + 20;
 // INIT
