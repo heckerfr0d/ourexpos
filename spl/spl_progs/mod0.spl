@@ -20,19 +20,19 @@ if(functionNum==9) then
     if(currentPID==[TERMINAL_STATUS_TABLE+1]) then
         [TERMINAL_STATUS_TABLE]=0;
         alias i R3;
-        i=PROCESS_TABLE + 4;
-        while(i< 15*16+5) do
+        i=PROCESS_TABLE + 20;
+        while(i < PROCESS_TABLE+256) do
             if([i]==WAIT_TERMINAL) then
                 [i]=READY;
             endif;
             i=i+16;
         endwhile;
         R0=0;
-        //breakpoint;
+        // breakpoint;
         return;
     else
         R0=-1;
-        //breakpoint;
+        // breakpoint;
         return;
     endif;
 
