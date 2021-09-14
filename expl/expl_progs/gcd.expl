@@ -8,11 +8,13 @@ begin
     temp = exposcall("Read", -1, a);
     temp = exposcall ("Write", -2, "Smol No.");
     temp = exposcall("Read", -1, b);
+
     while ( b>0 ) do
         temp = (a%b);
         a = b;
         b = temp;
     endwhile;
+
     temp = exposcall ("Write", -2, a);
     return 0;
 end

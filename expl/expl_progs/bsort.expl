@@ -1,0 +1,43 @@
+decl
+    int a[100];
+enddecl
+
+int main()
+{
+decl
+    int n, i, j, temp;
+enddecl
+begin
+    temp = exposcall ("Write", -2, "N:");
+    temp = exposcall ("Read", -1, n);
+
+    temp = exposcall ("Write", -2, "Array:");
+    while ( i<n ) do
+        temp = exposcall ("Read", -1, a[i]);
+        i = i + 1;
+    endwhile;
+
+    i = 0;
+    while ( i<n ) do
+        j = i + 1;
+        while ( j<n ) do
+            if ( a[i]>a[j] ) then
+                temp = a[i];
+                a[i] = a[j];
+                a[j] = temp;
+            endif;
+            j = j + 1;
+        endwhile;
+        i = i + 1;
+    endwhile;
+
+    temp = exposcall ("Write", -2, "Sorted Array:");
+    i = 0;
+    while ( i<n ) do
+        temp = exposcall ("Write", -2, a[i]);
+        i = i + 1;
+    endwhile;
+
+    return 0;
+end
+}
