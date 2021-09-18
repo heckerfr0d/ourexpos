@@ -1,0 +1,47 @@
+alias functionNum R1;
+alias pageNo R2;
+
+if (functionNum == 1) then
+    [SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] + 1;
+
+    alias process_table_entry R3;
+    process_table_entry = PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16;
+
+    while ([SYSTEM_STATUS_TABLE + 2] == 0) do
+        [process_table_entry + 4] = WAIT_MEM;
+        multipush(R0, R1, R2, R3);
+        call SCHEDULER;
+        multipop(R0, R1, R2, R3);
+    endwhile;
+
+    [SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] - 1;
+    [SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;
+
+    alias page R4;
+    page = 76;
+    while (page < MAX_MEM_PAGE) do
+        if([MEMORY_FREE_LIST + page] == 0) then
+            [MEMORY_FREE_LIST + page] = 1;
+            R0 = page;
+            break;
+        endif;
+        page = page + 1;
+    endwhile;
+    return;
+endif;
+
+if (functionNum == 2) then
+    [MEMORY_FREE_LIST + pageNo] = [MEMORY_FREE_LIST + pageNo] - 1;
+    if ([MEMORY_FREE_LIST + pageNo] == 0) then
+        [SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] + 1;
+        alias i R3;
+        i = PROCESS_TABLE + 20;
+        while(i < PROCESS_TABLE+256) do
+            if([i] == WAIT_MEM) then
+                [i] = READY;
+            endif;
+            i = i + 16;
+        endwhile;
+    endif;
+    return;
+endif;
