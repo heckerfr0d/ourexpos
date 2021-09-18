@@ -18,6 +18,10 @@ loadi(15, 28);
 loadi(16, 29);
 loadi(17, 30);
 
+// load int9
+loadi(20, 33);
+loadi(21, 34);
+
 // load exit code
 loadi(22, 35);
 loadi(23, 36);
@@ -25,6 +29,14 @@ loadi(23, 36);
 // load RESOURCE_MANAGER(mod0)
 loadi(40, 53);
 loadi(41, 54);
+
+// load PROCESS_MANAGER(mod1)
+loadi(42, 55);
+loadi(43, 56);
+
+// load MEMORY_MANAGER(mod2)
+loadi(44, 57);
+loadi(45, 58);
 
 // load DEVICE_MANAGER(mod4)
 loadi(48, 61);
@@ -49,6 +61,9 @@ loadi(66, 8);
 // loadi(89, 70);
 
 [TERMINAL_STATUS_TABLE]=0;
+
+[SYSTEM_STATUS_TABLE + 2] = 47;
+[SYSTEM_STATUS_TABLE + 3] = 0;
 
 PTBR = PAGE_TABLE_BASE + 20;
 // INIT
@@ -197,5 +212,16 @@ PTBR = PAGE_TABLE_BASE + 20;
 [PROCESS_TABLE+228] = TERMINATED;
 [PROCESS_TABLE+244] = TERMINATED;
 
+// initialize MEMORY_FREE_LIST
+alias i R0;
+i = 0;
+while (i < 832) do
+    [MEMORY_FREE_LIST + i] = 1;
+    i = i + 1;
+endwhile;
+while (i < MAX_MEM_PAGE) do
+    [MEMORY_FREE_LIST + i] = 0;
+    i = i + 1;
+endwhile;
 
 return;
