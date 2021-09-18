@@ -46,6 +46,9 @@ loadi(49, 62);
 loadi(50,63);
 loadi(51,64);
 
+// load INODE_TABLE
+loadi(59, 3);
+
 // load library
 loadi(63, 13);
 loadi(64, 14);
@@ -215,7 +218,7 @@ PTBR = PAGE_TABLE_BASE + 20;
 // initialize MEMORY_FREE_LIST
 alias i R0;
 i = 0;
-while (i < 832) do
+while (i < 83) do
     [MEMORY_FREE_LIST + i] = 1;
     i = i + 1;
 endwhile;

@@ -59,58 +59,61 @@ SP = UAPage*512 - 1;
 [process_table_entry + 4] = RUNNING;
 [process_table_entry + 7] = i;
 
-alias pageTable R5;
-pageTable = [process_table_entry + 14];
-
 // library
-[pageTable+0] = 63;
-[pageTable+1] = "0100";
-[pageTable+2] = 64;
-[pageTable+3] = "0100";
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
 
 // get pages
-multipush(R0, R1, R2, R3, R4, R5);
+multipush(R0, R1, R2, R3, R4);
 
 // heap
 R1 = 1;
 R2 = [SYSTEM_STATUS_TABLE + 1];
 call MEMORY_MANAGER;
-[pageTable+4] = R0;
-[pageTable+5] = "0110";
+[PTBR+4] = R0;
+[PTBR+5] = "0110";
 call MEMORY_MANAGER;
-[pageTable+6] = R0;
-[pageTable+7] = "0110";
+[PTBR+6] = R0;
+[PTBR+7] = "0110";
 
 // stack
 call MEMORY_MANAGER;
-[pageTable+16] = R0;
-[pageTable+17] = "0110";
+[PTBR+16] = R0;
+[PTBR+17] = "0110";
 call MEMORY_MANAGER;
-[pageTable+18] = R0;
-[pageTable+19] = "0110";
+[PTBR+18] = R0;
+[PTBR+19] = "0110";
 
-multipop(R0, R1, R2, R3, R4, R5);
+multipop(R0, R1, R2, R3, R4);
 
 alias codeSize R6;
 codeSize = [INODE_TABLE + 16*i + 2];
+if (codeSize%512 == 0) then
+    codeSize = codeSize/512;
+else
+    codeSize = codeSize/512 + 1;
+endif;
 
 alias j R7;
 j=0;
 
 // code
 while (j < codeSize) do
-    multipush(R0, R1, R2, R3, R4, R5, R6, R7);
+    multipush(R0, R1, R2, R3, R4, R6, R7);
     R1 = 1;
     R2 = [SYSTEM_STATUS_TABLE + 1];
     call MEMORY_MANAGER;
-    [pageTable+8+j*2] = R0;
-    loadi(R0, [INODE_TABLE + 16*i + 6 + j]);
-    [pageTable+9+j*2] = "0100";
-    multipop(R0, R1, R2, R3, R4, R5, R6, R7);
+    multipop(R1, R2, R3, R4, R6, R7);
+    [PTBR+8+j*2] = R0;
+    loadi(R0, [INODE_TABLE + 16*i + 8 + j]);
+    [PTBR+9+j*2] = "0100";
+    multipop(R0);
     j = j + 1;
 endwhile;
 
-[[pageTable+16]*512] = [[pageTable+8]*512+1];
+[[PTBR+16]*512] = [[PTBR+8]*512+1];
 
 SP = 8*512;
 

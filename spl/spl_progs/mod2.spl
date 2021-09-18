@@ -1,5 +1,4 @@
 alias functionNum R1;
-alias pageNo R2;
 
 if (functionNum == 1) then
     [SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] + 1;
@@ -9,9 +8,9 @@ if (functionNum == 1) then
 
     while ([SYSTEM_STATUS_TABLE + 2] == 0) do
         [process_table_entry + 4] = WAIT_MEM;
-        multipush(R0, R1, R2, R3);
+        multipush(R0, R1, R3);
         call SCHEDULER;
-        multipop(R0, R1, R2, R3);
+        multipop(R0, R1, R3);
     endwhile;
 
     [SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] - 1;
@@ -23,14 +22,16 @@ if (functionNum == 1) then
         if([MEMORY_FREE_LIST + page] == 0) then
             [MEMORY_FREE_LIST + page] = 1;
             R0 = page;
-            break;
+            return;
         endif;
         page = page + 1;
     endwhile;
+    // breakpoint;
     return;
 endif;
 
 if (functionNum == 2) then
+    alias pageNo R2;
     [MEMORY_FREE_LIST + pageNo] = [MEMORY_FREE_LIST + pageNo] - 1;
     if ([MEMORY_FREE_LIST + pageNo] == 0) then
         [SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] + 1;
@@ -43,5 +44,6 @@ if (functionNum == 2) then
             i = i + 16;
         endwhile;
     endif;
+    // breakpoint;
     return;
 endif;
