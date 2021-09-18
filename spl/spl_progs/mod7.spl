@@ -65,6 +65,18 @@ loadi(66, 8);
 
 [TERMINAL_STATUS_TABLE]=0;
 
+// initialize MEMORY_FREE_LIST
+alias i R0;
+i = 0;
+while (i < 83) do
+    [MEMORY_FREE_LIST + i] = 1;
+    i = i + 1;
+endwhile;
+while (i < MAX_MEM_PAGE) do
+    [MEMORY_FREE_LIST + i] = 0;
+    i = i + 1;
+endwhile;
+
 [SYSTEM_STATUS_TABLE + 2] = 45;
 [SYSTEM_STATUS_TABLE + 3] = 0;
 
@@ -214,17 +226,5 @@ PTBR = PAGE_TABLE_BASE + 20;
 [PROCESS_TABLE+212] = TERMINATED;
 [PROCESS_TABLE+228] = TERMINATED;
 [PROCESS_TABLE+244] = TERMINATED;
-
-// initialize MEMORY_FREE_LIST
-alias i R0;
-i = 0;
-while (i < 83) do
-    [MEMORY_FREE_LIST + i] = 1;
-    i = i + 1;
-endwhile;
-while (i < MAX_MEM_PAGE) do
-    [MEMORY_FREE_LIST + i] = 0;
-    i = i + 1;
-endwhile;
 
 return;
