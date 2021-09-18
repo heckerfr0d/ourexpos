@@ -1,0 +1,119 @@
+alias process_table_entry R4;
+process_table_entry = PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16;
+
+// set MODE FLAG (in PROCESS TABLE) to syscall number
+[process_table_entry + 9] = 9;
+
+// store value of userSP in R0
+alias userSP R0;
+userSP = SP;
+
+// switch to kernel stack
+[process_table_entry + 13] = SP;
+SP = [process_table_entry + 11]*512 - 1;
+
+// get fileName from user stack
+alias fileName R1;
+fileName = [[PTBR + 2*(userSP-4)/512]*512 + (userSP-4)%512];
+
+alias i R2;
+i = INODE_TABLE + 1;
+while (i < INODE_TABLE + 960) do
+    if ([i]==fileName) then
+        break;
+    endif;
+    i = i + 16;
+endwhile;
+
+if(i > INODE_TABLE + 960 || [i-1]!=EXEC) then
+    // file invalid
+    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = -1;
+
+    // restore SP to userSP
+    SP = userSP;
+
+    // reset MODE FLAG (in PROCESS TABLE) to 0
+    [process_table_entry + 9] = 0;
+
+    ireturn;
+endif ;
+
+i = (i - INODE_TABLE)/16;
+
+// exit process
+multipush(R0, R1, R2, R4);
+R1 = 3;
+R2 = [SYSTEM_STATUS_TABLE + 1];
+call PROCESS_MANAGER;
+multipop(R0, R1, R2, R4);
+
+alias UAPage R3;
+UAPage = [process_table_entry + 11];
+
+// allocate same UAPage & PID
+[MEMORY_FREE_LIST + UAPage] = [MEMORY_FREE_LIST + UAPage] + 1;
+[SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;
+
+SP = UAPage*512 - 1;
+
+[process_table_entry + 4] = RUNNING;
+[process_table_entry + 7] = i;
+
+alias pageTable R5;
+pageTable = [process_table_entry + 14];
+
+// library
+[pageTable+0] = 63;
+[pageTable+1] = "0100";
+[pageTable+2] = 64;
+[pageTable+3] = "0100";
+
+// get pages
+multipush(R0, R1, R2, R3, R4, R5);
+
+// heap
+R1 = 1;
+R2 = [SYSTEM_STATUS_TABLE + 1];
+call MEMORY_MANAGER;
+[pageTable+4] = R0;
+[pageTable+5] = "0110";
+call MEMORY_MANAGER;
+[pageTable+6] = R0;
+[pageTable+7] = "0110";
+
+// stack
+call MEMORY_MANAGER;
+[pageTable+16] = R0;
+[pageTable+17] = "0110";
+call MEMORY_MANAGER;
+[pageTable+18] = R0;
+[pageTable+19] = "0110";
+
+multipop(R0, R1, R2, R3, R4, R5);
+
+alias codeSize R6;
+codeSize = [INODE_TABLE + 16*i + 2];
+
+alias j R7;
+j=0;
+
+// code
+while (j < codeSize) do
+    multipush(R0, R1, R2, R3, R4, R5, R6, R7);
+    R1 = 1;
+    R2 = [SYSTEM_STATUS_TABLE + 1];
+    call MEMORY_MANAGER;
+    [pageTable+8+j*2] = R0;
+    loadi(R0, [INODE_TABLE + 16*i + 6 + j]);
+    [pageTable+9+j*2] = "0100";
+    multipop(R0, R1, R2, R3, R4, R5, R6, R7);
+    j = j + 1;
+endwhile;
+
+[[pageTable+16]*512] = [[pageTable+8]*512+1];
+
+SP = 8*512;
+
+[process_table_entry + 9] = 0;
+
+ireturn;
