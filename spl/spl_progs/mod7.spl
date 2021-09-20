@@ -6,6 +6,10 @@ loadi(3, 16);
 loadi(4, 17);
 loadi(5, 18);
 
+//load disk int
+loadi(6, 19);
+loadi(7, 20);
+
 // load console int
 loadi(8, 21);
 loadi(9, 22);
@@ -48,6 +52,7 @@ loadi(51,64);
 
 // load INODE_TABLE
 loadi(59, 3);
+loadi(60, 4);
 
 // load library
 loadi(63, 13);
@@ -64,21 +69,7 @@ loadi(66, 8);
 // loadi(89, 70);
 
 [TERMINAL_STATUS_TABLE]=0;
-
-// initialize MEMORY_FREE_LIST
-alias i R0;
-i = 0;
-while (i < 83) do
-    [MEMORY_FREE_LIST + i] = 1;
-    i = i + 1;
-endwhile;
-while (i < MAX_MEM_PAGE) do
-    [MEMORY_FREE_LIST + i] = 0;
-    i = i + 1;
-endwhile;
-
-[SYSTEM_STATUS_TABLE + 2] = 45;
-[SYSTEM_STATUS_TABLE + 3] = 0;
+[DISK_STATUS_TABLE]=0;
 
 PTBR = PAGE_TABLE_BASE + 20;
 // INIT
@@ -119,6 +110,14 @@ PTBR = PAGE_TABLE_BASE + 20;
 [PROCESS_TABLE+29] = 8*512;
 [PROCESS_TABLE+30] = PAGE_TABLE_BASE+20;
 [PROCESS_TABLE+31] = 10;
+
+// INIT pre-process resource table
+alias j R1;
+j = 80*512 + (512-16);
+while(j < 80*512 + 512) do
+    [j] = -1;
+    j=j+2;
+endwhile;
 
 [76*512] = [65*512+1];
 
@@ -226,5 +225,20 @@ PTBR = PAGE_TABLE_BASE + 20;
 [PROCESS_TABLE+212] = TERMINATED;
 [PROCESS_TABLE+228] = TERMINATED;
 [PROCESS_TABLE+244] = TERMINATED;
+
+// initialize MEMORY_FREE_LIST
+alias i R0;
+i = 0;
+while (i < 83) do
+    [MEMORY_FREE_LIST + i] = 1;
+    i = i + 1;
+endwhile;
+while (i < MAX_MEM_PAGE) do
+    [MEMORY_FREE_LIST + i] = 0;
+    i = i + 1;
+endwhile;
+
+[SYSTEM_STATUS_TABLE + 2] = 45;
+[SYSTEM_STATUS_TABLE + 3] = 0;
 
 return;

@@ -5,6 +5,7 @@ load --idle ../expl/expl_progs/idle.xsm
 load --exhandler ../spl/spl_progs/exception.xsm
 load --int=timer ../spl/spl_progs/sample_timer.xsm
 load --int=console ../spl/spl_progs/console.xsm
+load --int=disk ../spl/spl_progs/disk.xsm
 load --int=6 ../spl/spl_progs/int6.xsm
 load --int=7 ../spl/spl_progs/int7.xsm
 load --int=9 ../spl/spl_progs/int9.xsm
