@@ -12,18 +12,19 @@ begin
     temp = exposcall ("Read", -1, n);
 
     temp = exposcall ("Write", -2, "Array:");
+    i = 0;
     while ( i<n ) do
         temp = exposcall ("Read", -1, a[i]);
         i = i + 1;
     endwhile;
 
     i = 0;
-    while ( i<n ) do
-        j = i + 1;
-        while ( j<n ) do
-            if ( a[i]>a[j] ) then
-                temp = a[i];
-                a[i] = a[j];
+    while ( i < (n-1) ) do
+        j = 0;
+        while ( j < (n-i-1) ) do
+            if ( a[j]>a[j+1] ) then
+                temp = a[j+1];
+                a[j+1] = a[j];
                 a[j] = temp;
             endif;
             j = j + 1;

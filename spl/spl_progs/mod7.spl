@@ -68,8 +68,8 @@ loadi(66, 8);
 // // load program3
 // loadi(89, 70);
 
-[TERMINAL_STATUS_TABLE]=0;
-[DISK_STATUS_TABLE]=0;
+[TERMINAL_STATUS_TABLE] = 0;
+[DISK_STATUS_TABLE] = 0;
 
 PTBR = PAGE_TABLE_BASE + 20;
 // INIT
@@ -112,11 +112,11 @@ PTBR = PAGE_TABLE_BASE + 20;
 [PROCESS_TABLE+31] = 10;
 
 // INIT pre-process resource table
-alias j R1;
-j = 80*512 + (512-16);
-while(j < 80*512 + 512) do
-    [j] = -1;
-    j=j+2;
+R0 = 80*512 + 496;
+R1 = R0 + 16;
+while(R0 < R1) do
+    [R0] = -1;
+    R0 = R0 + 2;
 endwhile;
 
 [76*512] = [65*512+1];

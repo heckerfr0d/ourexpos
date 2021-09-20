@@ -1,3 +1,4 @@
+// breakpoint;
 // Store SP in PROCESS_TABLE
 [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 13] = SP;
 
@@ -10,15 +11,16 @@ backup;
 
 alias i R0;
 i = PROCESS_TABLE + 20;
-while( i < (PROCESS_TABLE + 15*16 +5)) do
-    if([i]== WAIT_DISK) then
+while( i < (PROCESS_TABLE + 256)) do
+    if([i] == WAIT_DISK) then
         [i] = READY;
     endif;
-    i=i+16;
+    i = i + 16;
 endwhile;
 
 restore;
 
 SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 13];
 
+// breakpoint;
 ireturn;
