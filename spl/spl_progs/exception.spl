@@ -1,2 +1,82 @@
-print "exception";
-halt;
+alias process_table_entry R4;
+process_table_entry = PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16;
+
+// set MODE FLAG (in PROCESS TABLE) to syscall number
+[process_table_entry + 9] = -1;
+
+// store value of userSP in R0
+alias userSP R0;
+userSP = SP;
+
+// switch to kernel stack
+[process_table_entry + 13] = SP;
+SP = [process_table_entry + 11]*512 - 1;
+
+backup;
+
+multipush(EIP);
+
+if( EC != 0 || userSP == PTLR*512-1) then
+
+    if(userSP == PTLR*512 -1) then
+        print "StackExhausted";
+    endif;
+    if(EC == 1) then
+        print "IllInstruct!";
+    endif;
+    if(EC == 2) then
+        print "IllegalMemAcc";
+    endif;
+    if(EC == 3) then
+        print "ArithmeticExc";
+    endif;
+
+    // EXIT_PROCESS
+    R1 = 3;
+    R2 = [SYSTEM_STATUS_TABLE + 1];
+    call PROCESS_MANAGER;
+
+    call SCHEDULER;
+endif;
+
+
+// Code page fault
+if( EPN > 3 && EPN < 8 ) then
+
+    // get code page
+    multipush(R0,R4);
+    R1 = 5;
+    R2 = [DISK_MAP_TABLE + 10*[SYSTEM_STATUS_TABLE + 1] + EPN];
+    call MEMORY_MANAGER;
+    [PTBR + 2*EPN] = R0;
+    [PTBR + 2*EPN + 1] = "1100";
+    multipop(R0,R4);
+endif;
+
+// Heap page fault
+if( EPN == 2 || EPN == 3) then
+
+    // GET_FREE_PAGE
+    multipush(R0,R4);
+    R1 = 1;
+    call MEMORY_MANAGER;
+    [PTBR + 4] = R0;
+    [PTBR + 5] = "1110";
+    call MEMORY_MANAGER;
+    [PTBR + 6] = R0;
+    [PTBR + 7] = "1110";
+    multipop(R0,R4);
+endif;
+
+[process_table_entry + 9] = 0;
+
+multipop(EIP);
+
+restore;
+
+SP = userSP;
+SP = SP+1;
+
+[ [PTBR + (SP/512)*2]*512 + (SP % 512) ] = EIP;
+
+ireturn;

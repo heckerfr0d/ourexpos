@@ -1,7 +1,7 @@
 alias functionNum R1;
 alias currentPID R2;
 
-if (functionNum == 2) then
+if (functionNum == FREE_USER_AREA_PAGE) then
     // free UAPage
     multipush(R1, R2);
     R1 = 2;
@@ -12,7 +12,7 @@ if (functionNum == 2) then
     return;
 endif;
 
-if (functionNum == 3) then
+if (functionNum == EXIT_PROCESS) then
     // exit
     multipush(R1, R2);
 
@@ -30,7 +30,7 @@ if (functionNum == 3) then
     return;
 endif;
 
-if (functionNum == 4) then
+if (functionNum == FREE_PAGE_TABLE) then
     // free pageTable
     [PTBR + 0] = -1;
     [PTBR + 1] = "0000";
@@ -51,5 +51,26 @@ if (functionNum == 4) then
         [pageTable + 1] = "0000";
         pageTable = pageTable + 2;
     endwhile;
+
+    // Release stack,heap blocks 
+    // Invalidate disk_map_table entries
+    alias disk_map R4;
+    disk_map = DISK_MAP_TABLE + R2*10;
+    alias i R3;
+    i=2;
+    while( i<10 ) do
+        if( [disk_map + i] != -1 && ( i==2 || i==3 || i==8 || i==9 )) then
+            // RELEASE_BLOCK
+            multipush(R1,R2,R3,R4);
+            R1 = 4;
+            R3 = R2;
+            R2 = [disk_map + i];
+            call MEMORY_MANAGER;
+            multipush(R1,R2,R3,R4);
+        endif;
+        [disk_map + i]=-1;
+        i=i+1;
+    endwhile;
+
     return;
 endif;

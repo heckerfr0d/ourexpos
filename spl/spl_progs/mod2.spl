@@ -1,6 +1,6 @@
 alias functionNum R1;
 
-if (functionNum == 1) then
+if (functionNum == GET_FREE_PAGE) then
     [SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] + 1;
 
     alias process_table_entry R3;
@@ -30,7 +30,7 @@ if (functionNum == 1) then
     return;
 endif;
 
-if (functionNum == 2) then
+if (functionNum == RELEASE_PAGE) then
     alias pageNo R2;
     [MEMORY_FREE_LIST + pageNo] = [MEMORY_FREE_LIST + pageNo] - 1;
     if ([MEMORY_FREE_LIST + pageNo] == 0) then
@@ -45,5 +45,56 @@ if (functionNum == 2) then
         endwhile;
     endif;
     // breakpoint;
+    return;
+endif;
+
+if(functionNum == RELEASE_BLOCK) then
+
+    alias blockno R2;
+
+    //dec disk free list entry
+    [DISK_FREE_LIST + blockno] = [DISK_FREE_LIST + blockno]-1;
+
+    return;
+endif;
+
+if(functionNum == GET_CODE_PAGE) then
+    alias blockno R2;
+
+    alias i R3;
+    i = 0;
+    alias j R4;
+
+    
+    while(i < 16 ) do
+        j=4;
+        while( j < 8) do
+            if( [ DISK_MAP_TABLE + i*10 + j] == blockno  && [PAGE_TABLE_BASE + i*20 + 2*j] != -1 ) then
+
+                R0=[PAGE_TABLE_BASE + i*20 + 2*j];
+                [MEMORY_FREE_LIST + R0] = [MEMORY_FREE_LIST + R0] + 1;
+                return;
+
+            endif;
+            j=j+1;
+        endwhile;
+        i=i+10;
+    endwhile;
+
+    // GET_FREE_PAGE
+    multipush(R1,R2,R3,R4);
+    R1 = 1;
+    call MEMORY_MANAGER;
+    multipop(R1,R2,R3,R4);
+
+    // DISK_LOAD
+    multipush(R0,R1,R2,R3,R4);
+    R1=2;
+    R4=blockno;
+    R2=[SYSTEM_STATUS_TABLE + 1];
+    R3=R0;
+    call DEVICE_MANAGER;
+    multipop(R0,R1,R2,R3,R4);
+
     return;
 endif;
