@@ -1,3 +1,4 @@
+// PROCESS_MANAGER
 alias functionNum R1;
 alias currentPID R2;
 
@@ -37,6 +38,7 @@ if (functionNum == 4) then
     [PTBR + 2] = -1;
     [PTBR + 3] = "0000";
 
+    // release stack, heap, code pages
     alias pageTable R3;
     pageTable = PTBR + 4;
     while (pageTable < PTBR+20) do
@@ -51,5 +53,34 @@ if (functionNum == 4) then
         [pageTable + 1] = "0000";
         pageTable = pageTable + 2;
     endwhile;
+
+    // release stack, heap blocks
+    alias dmt R5;
+    dmt = DISK_MAP_TABLE + currentPID*10;
+    multipush(R1, R2, R3, R5);
+    R3 = currentPID;
+    R1 = 4;
+    if([dmt+2] != -1) then
+        R2 = [dmt+2];
+        call MEMORY_MANAGER;
+        [dmt+2] = -1;
+    endif;
+    if([dmt+3] != -1) then
+        R2 = [dmt+3];
+        call MEMORY_MANAGER;
+        [dmt+3] = -1;
+    endif;
+    if([dmt+8] != -1) then
+        R2 = [dmt+8];
+        call MEMORY_MANAGER;
+        [dmt+2] = -1;
+    endif;
+    if([dmt+9] != -1) then
+        R2 = [dmt+9];
+        call MEMORY_MANAGER;
+        [dmt+2] = -1;
+    endif;
+    multipop(R1, R2, R3, R5);
+
     return;
 endif;

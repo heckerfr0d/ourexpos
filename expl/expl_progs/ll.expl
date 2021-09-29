@@ -1,0 +1,36 @@
+type
+ll
+{
+    int x;
+    ll next;
+}
+endtype
+int main()
+{
+decl
+    ll head, temp;
+    int n, ret;
+enddecl
+begin
+    ret = exposcall ("Heapset");
+    ret = exposcall ("Write", -2, "N:");
+    ret = exposcall("Read", -1, n);
+    head = null;
+
+    while (n > 0) do
+        temp = exposcall("Alloc");
+        ret = exposcall("Read", -1, temp.x);
+        temp.next = head;
+        head = temp;
+        n = n - 1;
+    endwhile;
+
+    ret = exposcall("Write", -2, "LinkedList:");
+    while (head != null) do
+        ret = exposcall("Write", -2, head.x);
+        head = head.next;
+    endwhile;
+
+    return 0;
+end
+}

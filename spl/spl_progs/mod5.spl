@@ -1,8 +1,8 @@
+// SCHEDULER
 alias currentPID R0;
 currentPID = [SYSTEM_STATUS_TABLE+1];
 
-SP = SP+1;
-[SP] = BP;
+multipush(BP);
 
 alias process_table_entry R1;
 process_table_entry = PROCESS_TABLE + currentPID*16;
@@ -39,7 +39,6 @@ if([process_table_entry + 4]==CREATED) then
 endif;
 
 [process_table_entry + 4] = RUNNING;
-BP = [SP];
-SP = SP-1;
+multipop(BP);
 
 return;

@@ -1,3 +1,4 @@
+// BOOT MODULE
 // load exception handler
 loadi(2, 15);
 loadi(3, 16);
@@ -53,6 +54,9 @@ loadi(51,64);
 // load INODE_TABLE
 loadi(59, 3);
 loadi(60, 4);
+
+// load DISK_FREE_LIST
+loadi(61, 2);
 
 // load library
 loadi(63, 13);
@@ -110,6 +114,16 @@ PTBR = PAGE_TABLE_BASE + 20;
 [PROCESS_TABLE+29] = 8*512;
 [PROCESS_TABLE+30] = PAGE_TABLE_BASE+20;
 [PROCESS_TABLE+31] = 10;
+
+// init DISK_MAP_TABLE
+[DISK_MAP_TABLE + 12] = -1;
+[DISK_MAP_TABLE + 13] = -1;
+[DISK_MAP_TABLE + 14] = 7;
+[DISK_MAP_TABLE + 15] = 8;
+[DISK_MAP_TABLE + 16] = -1;
+[DISK_MAP_TABLE + 17] = -1;
+[DISK_MAP_TABLE + 18] = -1;
+[DISK_MAP_TABLE + 19] = -1;
 
 // INIT pre-process resource table
 R0 = 80*512 + 496;
