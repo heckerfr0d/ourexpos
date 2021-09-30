@@ -80,6 +80,10 @@ if (functionNum == FREE_PAGE_TABLE) then
         call MEMORY_MANAGER;
         [dmt+2] = -1;
     endif;
+    [dmt+4] = -1;
+    [dmt+5] = -1;
+    [dmt+6] = -1;
+    [dmt+7] = -1;
     multipop(R1, R2, R3, R5);
 
     return;
