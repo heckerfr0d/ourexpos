@@ -38,8 +38,6 @@ if(i > INODE_TABLE + 960 || [i-1]!=EXEC) then
     ireturn;
 endif ;
 
-// i = (i - INODE_TABLE)/16;
-// i is word 1 in inode table entry
 
 // exit process
 multipush(R0, R1, R2, R4);
@@ -120,41 +118,6 @@ disk_map_entry = DISK_MAP_TABLE + [SYSTEM_STATUS_TABLE+1]*10;
 [disk_map_entry + 7] = [i + 10];
 [disk_map_entry + 8] = -1;
 [disk_map_entry + 9] = -1;
-
-
-// alias codeSize R6;
-// codeSize = [INODE_TABLE + 16*i + 2];
-// if (codeSize%512 == 0) then
-//     codeSize = codeSize/512;
-// else
-//     codeSize = codeSize/512 + 1;
-// endif;
-
-// alias j R7;
-// j=0;
-
-// // code
-// while (j < codeSize) do
-
-//     // GET_FREE_PAGE
-//     multipush(R0, R1, R2, R3, R4, R6, R7);
-//     R1 = 1;
-//     call MEMORY_MANAGER;
-//     multipop(R1, R2, R3, R4, R6, R7);
-//     [PTBR+8+j*2] = R0;
-//     [PTBR+9+j*2] = "0100";
-
-//     // LOAD_DISK
-//     multipush(R1, R2, R3, R4, R6, R7);
-//     R4 = [INODE_TABLE + i*16 + 8 + j];
-//     R3 = R0;
-//     R2 = [SYSTEM_STATUS_TABLE + 1];
-//     R1 = 2;
-//     call DEVICE_MANAGER;
-//     multipop(R0, R1, R2, R3, R4, R6, R7);
-
-//     j = j + 1;
-// endwhile;
 
 
 [[PTBR+16]*512] = [[PTBR+8]*512+1];

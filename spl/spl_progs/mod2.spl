@@ -1,8 +1,7 @@
 // MEMORY_MANAGER
 alias functionNum R1;
 
-if (functionNum == 1) then
-    // get free page
+if (functionNum == GET_FREE_PAGE) then
     [SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] + 1;
 
     alias process_table_entry R3;
@@ -32,8 +31,7 @@ if (functionNum == 1) then
     return;
 endif;
 
-if (functionNum == 2) then
-    // release page
+if (functionNum == RELEASE_PAGE) then
     alias pageNo R2;
     [MEMORY_FREE_LIST + pageNo] = [MEMORY_FREE_LIST + pageNo] - 1;
     if ([MEMORY_FREE_LIST + pageNo] == 0) then
@@ -51,15 +49,17 @@ if (functionNum == 2) then
     return;
 endif;
 
-if (functionNum == 4) then
-    // release block
-    alias blockNo R2;
-    [DISK_FREE_LIST + blockNo] = [DISK_FREE_LIST + blockNo] - 1;
+if(functionNum == RELEASE_BLOCK) then
+
+    alias blockno R2;
+
+    //dec disk free list entry
+    [DISK_FREE_LIST + blockno] = [DISK_FREE_LIST + blockno] - 1;
 
     return;
 endif;
 
-if (functionNum == 5) then
+if (functionNum == GET_CODE_PAGE) then
     // get code page
     alias blockNo R2;
     alias dmt R3;

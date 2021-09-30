@@ -133,6 +133,16 @@ while(R0 < R1) do
     R0 = R0 + 2;
 endwhile;
 
+//INIT disk_map_table
+alias j R0;
+j = 0;
+while(j < 10) do
+    [DISK_MAP_TABLE + 10 + j] = -1;
+    j=j+1;
+endwhile;
+[DISK_MAP_TABLE + 10 + 4] = 7;
+[DISK_MAP_TABLE + 10 + 5] = 8;
+
 [76*512] = [65*512+1];
 
 

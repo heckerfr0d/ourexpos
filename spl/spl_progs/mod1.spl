@@ -2,7 +2,7 @@
 alias functionNum R1;
 alias currentPID R2;
 
-if (functionNum == 2) then
+if (functionNum == FREE_USER_AREA_PAGE) then
     // free UAPage
     multipush(R1, R2);
     R1 = 2;
@@ -13,7 +13,7 @@ if (functionNum == 2) then
     return;
 endif;
 
-if (functionNum == 3) then
+if (functionNum == EXIT_PROCESS) then
     // exit
     multipush(R1, R2);
 
@@ -31,7 +31,7 @@ if (functionNum == 3) then
     return;
 endif;
 
-if (functionNum == 4) then
+if (functionNum == FREE_PAGE_TABLE) then
     // free pageTable
     [PTBR + 0] = -1;
     [PTBR + 1] = "0000";
