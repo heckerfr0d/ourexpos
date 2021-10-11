@@ -48,9 +48,9 @@ newptb = PAGE_TABLE_BASE + 20*newPID;
 
 // library
 [newptb] = [PTBR];
-[newptb+1] = "0110";
+[newptb+1] = "0100";
 [newptb+2] = [PTBR+2];
-[newptb+3] = "0110";
+[newptb+3] = "0100";
 [MEMORY_FREE_LIST + [PTBR]] = [MEMORY_FREE_LIST + [PTBR]] + 1;
 [MEMORY_FREE_LIST + [PTBR+2]] = [MEMORY_FREE_LIST + [PTBR+2]] + 1;
 
@@ -64,13 +64,13 @@ newptb = PAGE_TABLE_BASE + 20*newPID;
 
 // code
 [newptb+8] = [PTBR+8];
-[newptb+9] = "0110";
+[newptb+9] = "0100";
 [newptb+10] = [PTBR+10];
-[newptb+11] = "0110";
+[newptb+11] = [PTBR+11];
 [newptb+12] = [PTBR+12];
-[newptb+13] = "0110";
+[newptb+13] = [PTBR+13];
 [newptb+14] = [PTBR+14];
-[newptb+15] = "0110";
+[newptb+15] = [PTBR+15];
 [MEMORY_FREE_LIST + [PTBR+8]] = [MEMORY_FREE_LIST + [PTBR+8]] + 1;
 [MEMORY_FREE_LIST + [PTBR+10]] = [MEMORY_FREE_LIST + [PTBR+10]] + 1;
 [MEMORY_FREE_LIST + [PTBR+12]] = [MEMORY_FREE_LIST + [PTBR+12]] + 1;
@@ -134,10 +134,20 @@ while (i < l) do
     j = j + 1;
 endwhile;
 
-// copy user stack
+// copy stack page 1
 i = [newptb+16]*512;
-l = i + 1024;
+l = i + 512;
 j = [PTBR+16]*512;
+while (i < l) do
+    [i] = [j];
+    i = i + 1;
+    j = j + 1;
+endwhile;
+
+// copy stack page 2
+i = [newptb+18]*512;
+l = i + 512;
+j = [PTBR+18]*512;
 while (i < l) do
     [i] = [j];
     i = i + 1;
