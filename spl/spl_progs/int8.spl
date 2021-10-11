@@ -145,7 +145,7 @@ while (i < l) do
 endwhile;
 
 // push BP
-[[process_table_new + 11]*512 - 1] = BP;
+[[process_table_new + 11]*512] = BP;
 [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = newPID;
 [[newptb + 2*(userSP-1)/512]*512 + (userSP-1)%512] = 0;
 
