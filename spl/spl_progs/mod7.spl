@@ -125,7 +125,7 @@ PTBR = PAGE_TABLE_BASE + 20;
 [DISK_MAP_TABLE + 18] = -1;
 [DISK_MAP_TABLE + 19] = -1;
 
-// INIT pre-process resource table
+// INIT per-process resource table
 R0 = 80*512 + 496;
 R1 = R0 + 16;
 while(R0 < R1) do
