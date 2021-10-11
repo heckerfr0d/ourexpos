@@ -1,9 +1,21 @@
-[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+1]*16 + 4] = TERMINATED;
+alias process_table_entry R4;
+process_table_entry = PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16;
+
+// set MODE FLAG (in PROCESS TABLE) to syscall number
+[process_table_entry + 9] = 10;
+
+// switch to kernel stack
+[process_table_entry + 13] = SP;
+SP = [process_table_entry + 11]*512 - 1;
+
+R1 = 3;
+R2 = [SYSTEM_STATUS_TABLE + 1];
+call PROCESS_MANAGER;
 
 alias i R0;
 i = PROCESS_TABLE + 20;
-while (i<PROCESS_TABLE+256) do
-	if([i]!=TERMINATED) then
+while (i < PROCESS_TABLE+256) do
+	if ([i] != TERMINATED) then
         call SCHEDULER;
     endif;
 	i = i + 16;
