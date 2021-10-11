@@ -29,7 +29,7 @@ if (newPID == -1) then
     ireturn;
 endif;
 
-if ([PTBR+2] == -1) then
+if ([PTBR+4] == -1) then
     // parent has no heap
     multipush(R0, R1, R4);
     R1 = 1;
@@ -44,7 +44,7 @@ endif;
 
 // child pagetb
 alias newptb R5;
-newptb = [PAGE_TABLE_BASE + 20*newPID];
+newptb = PAGE_TABLE_BASE + 20*newPID;
 
 // library
 [newptb] = [PTBR];
@@ -78,7 +78,7 @@ newptb = [PAGE_TABLE_BASE + 20*newPID];
 
 // stack
 multipush(R0, R1, R4, R5);
-multipush(R5);
+R1 = 1;
 call MEMORY_MANAGER;
 multipop(R5);
 [newptb+16] = R0;

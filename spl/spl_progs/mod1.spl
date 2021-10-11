@@ -7,11 +7,12 @@ if (functionNum == 1) then
     alias i R0;
     i = PROCESS_TABLE + 20;
     while (i<PROCESS_TABLE+256) do
-        if([i]!=TERMINATED) then
+        if([i]==TERMINATED) then
             [i] = ALLOCATED;
+            [i+11] = 10;
             i = (i-PROCESS_TABLE-4)/16;
+            [PROCESS_TABLE + 16*i + 1] = i;
             [PROCESS_TABLE + 16*i + 14] = PAGE_TABLE_BASE + 20*i;
-            [PROCESS_TABLE + 16*i + 15] = 10;
             return;
         endif;
         i = i + 16;
