@@ -2,6 +2,24 @@
 alias functionNum R1;
 alias currentPID R2;
 
+if (functionNum == 1) then
+    // get PCB Entry
+    alias i R0;
+    i = PROCESS_TABLE + 20;
+    while (i<PROCESS_TABLE+256) do
+        if([i]!=TERMINATED) then
+            [i] = ALLOCATED;
+            i = (i-PROCESS_TABLE-4)/16;
+            [PROCESS_TABLE + 16*i + 14] = PAGE_TABLE_BASE + 20*i;
+            [PROCESS_TABLE + 16*i + 15] = 10;
+            return;
+        endif;
+        i = i + 16;
+    endwhile;
+    i = -1;
+    return;
+endif;
+
 if (functionNum == FREE_USER_AREA_PAGE) then
     // free UAPage
     multipush(R1, R2);
