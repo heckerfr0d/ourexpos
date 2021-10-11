@@ -26,19 +26,21 @@ if(i>=PROCESS_TABLE+256) then
 endif;
 
 process_table_entry = PROCESS_TABLE + newPID*16;
-SP = [process_table_entry + 11]*512 + [process_table_entry + 12];
 PTBR = [process_table_entry + 14];
 PTLR = [process_table_entry + 15];
 [SYSTEM_STATUS_TABLE + 1] = newPID;
 
 if([process_table_entry + 4]==CREATED) then
     SP = [process_table_entry + 13];
+    BP = [[process_table_entry + 11]*512-1];
     [process_table_entry + 4] = RUNNING;
     [process_table_entry + 9] = 0;
     ireturn;
 endif;
 
 [process_table_entry + 4] = RUNNING;
+SP = [process_table_entry + 11]*512 + [process_table_entry + 12];
+
 multipop(BP);
 
 return;
