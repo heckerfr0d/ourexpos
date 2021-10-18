@@ -46,6 +46,20 @@ if (functionNum == EXIT_PROCESS) then
 
     multipop(R1, R2);
 
+    if ([PROCESS_TABLE + currentPID*16 + 9] != 9) then
+        alias i R0;
+        i = PROCESS_TABLE + 20;
+        while (i < PROCESS_TABLE+256) do
+            if ([i] == WAIT_PROCESS && [i+1] == currentPID) then
+                [i] = READY;
+            endif;
+            if ([i+2] == currentPID) then
+                [i+2] = -1;
+            endif;
+            i = i + 16;
+        endwhile;
+    endif;
+
     [PROCESS_TABLE + currentPID*16 + 4] = TERMINATED;
     return;
 endif;
