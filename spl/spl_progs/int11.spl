@@ -1,0 +1,73 @@
+alias process_table_entry R4;
+process_table_entry = PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16;
+
+// store value of userSP in R0
+alias userSP R0;
+userSP = SP;
+
+// extract syscall number from user stack
+alias sysno R1;
+sysno = [[PTBR + 2*(userSP-5)/512]*512 + (userSP-5)%512];
+
+// set MODE FLAG (in PROCESS TABLE) to syscall number
+[process_table_entry + 9] = sysno;
+
+// switch to kernel stack
+[process_table_entry + 13] = SP;
+SP = [process_table_entry + 11]*512 - 1;
+
+if (sysno == 11) then
+    // getpid
+    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = [SYSTEM_STATUS_TABLE + 1];
+    [process_table_entry + 9] = 0;
+    SP = userSP;
+    ireturn;
+endif;
+
+if (sysno == 12) then
+    // getppid
+    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = [process_table_entry + 2];
+    [process_table_entry + 9] = 0;
+    SP = userSP;
+    ireturn;
+endif;
+
+if (sysno == 13) then
+    // wait
+    alias tpid R2;
+    tpid = [[PTBR + 2*(userSP-4)/512]*512 + (userSP-4)%512];
+    if (tpid<1 || tpid>15 || [PROCESS_TABLE + tpid*16 + 4]==TERMINATED || tpid==[SYSTEM_STATUS_TABLE+1]) then
+        // invalid pid
+        [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = -1;
+        [process_table_entry + 9] = 0;
+        SP = userSP;
+        ireturn;
+    endif;
+    [process_table_entry + 4] = WAIT_PROCESS;
+    [process_table_entry + 5] = tpid;
+    multipush(R0, R1, R2, R4);
+    call SCHEDULER;
+    multipop(R0, R1, R2, R4);
+    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = 0;
+    [process_table_entry + 9] = 0;
+    SP = userSP;
+    ireturn;
+endif;
+
+if (sysno == 14) then
+    // signal
+    alias i R3;
+    i = process_table_entry+20;
+    alias currentPID R5;
+    currentPID = [SYSTEM_STATUS_TABLE + 1];
+    while (i<PROCESS_TABLE+256) do
+        if([i]==WAIT_PROCESS && [i+1]==currentPID) then
+            [i] = READY;
+        endif;
+        i = i + 16;
+    endwhile;
+    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = 0;
+    [process_table_entry + 9] = 0;
+    SP = userSP;
+    ireturn;
+endif;

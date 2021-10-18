@@ -5,7 +5,6 @@ decl
 enddecl
 begin
     pid = exposcall ("Fork");
-    temp = exposcall ("Write", -2, pid);
     if (pid == 0) then
         temp = exposcall ("Exec", "odd.xsm");
     else

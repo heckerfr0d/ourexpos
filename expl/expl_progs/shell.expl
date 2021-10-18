@@ -1,0 +1,31 @@
+int main()
+{
+decl
+    int temp, pid;
+    string cmd;
+enddecl
+begin
+    while (1 == 1) do
+        temp = exposcall ("Write", -2, "$");
+        temp = exposcall("Read", -1, cmd);
+        if (cmd == "shutdown") then
+            temp = exposcall ("Write", -2, "Shutting down");
+            temp = exposcall ("Shutdown");
+        endif;
+        pid = exposcall ("Fork");
+        if (pid < 0) then
+            temp = exposcall ("Write", -2, "Fork failed");
+            continue;
+        endif;
+        if (pid == 0) then
+            temp = exposcall ("Exec", cmd);
+            if (temp == -1) then
+                temp = exposcall ("Write", -2, "cmd not found");
+                continue;
+            endif;
+        endif;
+        temp = exposcall ("Wait", pid);
+    endwhile;
+    return 0;
+end
+}
