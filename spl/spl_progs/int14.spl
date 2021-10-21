@@ -5,6 +5,9 @@ process_table_entry = PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16;
 alias userSP R0;
 userSP = SP;
 
+// count switch to kernel mode
+[75*512 + 3] = [75*512 + 3] + 1;
+
 // extract syscall number from user stack
 alias sysno R1;
 sysno = [[PTBR + 2*(userSP-5)/512]*512 + (userSP-5)%512];

@@ -1,4 +1,8 @@
 // SCHEDULER
+
+// count context switch
+[75*512 + 2] = [75*512 + 2] + 1;
+
 alias currentPID R0;
 currentPID = [SYSTEM_STATUS_TABLE+1];
 

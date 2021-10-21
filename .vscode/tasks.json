@@ -38,7 +38,7 @@
         "type": "shell",
         "command": "./xsm",
         // replace 10 with required timer value
-        "args": ["--debug", "--timer", "10"],
+        "args": ["--debug"],//, "--timer", "10"],
         "options": {
           "cwd": "${workspaceFolder}/xsm",
           "shell": {

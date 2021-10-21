@@ -18,6 +18,10 @@ if (functionNum == GET_FREE_PAGE) then
     [SYSTEM_STATUS_TABLE + 3] = [SYSTEM_STATUS_TABLE + 3] - 1;
     [SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;
 
+    if ([SYSTEM_STATUS_TABLE + 2] < [75*512]) then
+        [75*512] = [SYSTEM_STATUS_TABLE + 2];
+    endif;
+
     alias page R4;
     page = 76;
     while (page < 128) do

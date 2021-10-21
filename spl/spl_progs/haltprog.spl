@@ -1,1 +1,9 @@
+print "Max mem usage";
+print (128-[75*512]);
+print "Disk accesses";
+print [75*512 + 1];
+print "Context switches";
+print [75*512 + 2];
+print "Kernel switches";
+print [75*512 + 3];
 halt;
