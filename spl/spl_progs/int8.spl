@@ -36,6 +36,7 @@ if ([PTBR+4] == -1) then
     call MEMORY_MANAGER;
     [PTBR+4] = R0;
     [PTBR+5] = "0110";
+    R1 = 1;
     call MEMORY_MANAGER;
     [PTBR+6] = R0;
     [PTBR+7] = "0110";
@@ -46,44 +47,24 @@ endif;
 alias newptb R5;
 newptb = PAGE_TABLE_BASE + 20*newPID;
 
-// library
-[newptb] = [PTBR];
-[newptb+1] = "0100";
-[newptb+2] = [PTBR+2];
-[newptb+3] = "0100";
-[MEMORY_FREE_LIST + [PTBR]] = [MEMORY_FREE_LIST + [PTBR]] + 1;
-[MEMORY_FREE_LIST + [PTBR+2]] = [MEMORY_FREE_LIST + [PTBR+2]] + 1;
-
-// heap
-[newptb+4] = [PTBR+4];
-[newptb+5] = "0110";
-[newptb+6] = [PTBR+6];
-[newptb+7] = "0110";
-[MEMORY_FREE_LIST + [PTBR+4]] = [MEMORY_FREE_LIST + [PTBR+4]] + 1;
-[MEMORY_FREE_LIST + [PTBR+6]] = [MEMORY_FREE_LIST + [PTBR+6]] + 1;
-
-// code
-[newptb+8] = [PTBR+8];
-[newptb+9] = "0100";
-[newptb+10] = [PTBR+10];
-[newptb+11] = [PTBR+11];
-[newptb+12] = [PTBR+12];
-[newptb+13] = [PTBR+13];
-[newptb+14] = [PTBR+14];
-[newptb+15] = [PTBR+15];
-[MEMORY_FREE_LIST + [PTBR+8]] = [MEMORY_FREE_LIST + [PTBR+8]] + 1;
-[MEMORY_FREE_LIST + [PTBR+10]] = [MEMORY_FREE_LIST + [PTBR+10]] + 1;
-[MEMORY_FREE_LIST + [PTBR+12]] = [MEMORY_FREE_LIST + [PTBR+12]] + 1;
-[MEMORY_FREE_LIST + [PTBR+14]] = [MEMORY_FREE_LIST + [PTBR+14]] + 1;
+alias i R3;
+i = 0;
+while (i < 16) do
+    [newptb + i] = [PTBR + i];
+    [newptb + i + 1] = [PTBR + i + 1];
+    [MEMORY_FREE_LIST + [PTBR+i]] = [MEMORY_FREE_LIST + [PTBR+i]] + 1;
+    i = i + 2;
+endwhile;
 
 // stack
-multipush(R0, R1, R4, R5);
+multipush(R0, R1, R3, R4, R5);
 R1 = 1;
 call MEMORY_MANAGER;
 multipop(R5);
 [newptb+16] = R0;
 [newptb+17] = "0110";
 multipush(R5);
+R1 = 1;
 call MEMORY_MANAGER;
 multipop(R5);
 [newptb+18] = R0;
@@ -91,8 +72,9 @@ multipop(R5);
 
 // UAPage
 multipush(R5);
+R1 = 1;
 call MEMORY_MANAGER;
-multipop(R1, R4, R5);
+multipop(R1, R3, R4, R5);
 [PROCESS_TABLE + newPID*16 + 11] = R0;
 multipop(R0);
 
@@ -112,7 +94,6 @@ process_table_new = PROCESS_TABLE + newPID*16;
 
 
 // copy per-process resource table
-alias i R3;
 alias l R6;
 alias j R7;
 i = [process_table_new+11]*512 + 496;
@@ -120,8 +101,12 @@ l = i + 16;
 j = [process_table_entry+11]*512 + 496;
 while (i < l) do
     [i] = [j];
-    i = i + 1;
-    j = j + 1;
+    [i+1] = [j+1];
+    if ([j]==1) then
+        [SEMAPHORE_TABLE + [j+1]*4 + 1] = [SEMAPHORE_TABLE + [j+1]*4 + 1] + 1;
+    endif;
+    i = i + 2;
+    j = j + 2;
 endwhile;
 
 // copy disk map table

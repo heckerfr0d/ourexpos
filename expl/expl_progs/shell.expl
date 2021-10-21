@@ -6,7 +6,7 @@ decl
 enddecl
 begin
     while (1 == 1) do
-        temp = exposcall ("Write", -2, "$");
+        temp = exposcall ("Write", -2, "~/ $");
         temp = exposcall("Read", -1, cmd);
         if (cmd == "shutdown") then
             temp = exposcall ("Write", -2, "Shutting down");

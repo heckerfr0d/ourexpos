@@ -40,6 +40,14 @@ loadi(23, 36);
 loadi(24, 37);
 loadi(25, 38);
 
+// load int13
+loadi(28, 41);
+loadi(29, 42);
+
+// load int14
+loadi(30, 43);
+loadi(31, 44);
+
 // load int15
 loadi(32, 45);
 loadi(33, 46);
@@ -151,6 +159,15 @@ endwhile;
 [DISK_MAP_TABLE + 10 + 4] = 7;
 [DISK_MAP_TABLE + 10 + 5] = 8;
 
+// initialize semaphore table
+R0 = SEMAPHORE_TABLE;
+R1 = R0 + 128;
+while (R0 < R1) do
+    [R0] = -1;
+    [R0+1] = 0;
+    R0 = R0 + 4;
+endwhile;
+
 [76*512] = [65*512+1];
 
 
@@ -177,7 +194,7 @@ while (i < 83) do
     [MEMORY_FREE_LIST + i] = 1;
     i = i + 1;
 endwhile;
-while (i < MAX_MEM_PAGE) do
+while (i < 128) do
     [MEMORY_FREE_LIST + i] = 0;
     i = i + 1;
 endwhile;

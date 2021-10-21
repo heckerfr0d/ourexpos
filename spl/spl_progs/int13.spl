@@ -1,0 +1,92 @@
+alias process_table_entry R4;
+process_table_entry = PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16;
+
+// store value of userSP in R0
+alias userSP R0;
+userSP = SP;
+
+// extract syscall number from user stack
+alias sysno R1;
+sysno = [[PTBR + 2*(userSP-5)/512]*512 + (userSP-5)%512];
+
+// set MODE FLAG (in PROCESS TABLE) to syscall number
+[process_table_entry + 9] = sysno;
+
+// switch to kernel stack
+[process_table_entry + 13] = SP;
+SP = [process_table_entry + 11]*512 - 1;
+
+if (sysno == 17) then
+    // semget
+    alias i R2;
+    alias n R3;
+    i = [process_table_entry + 11]*512 + 496;
+    n = i + 16;
+
+    // find free entry in per process resource table
+    while (i < n) do
+        if ([i] == -1) then
+            [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = (i - [process_table_entry + 11]*512 - 496)/2;
+            [i] = 1;
+
+            multipush(R0, R1, R2, R3, R4);
+            // acquire semaphore
+            R1 = 6;
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            call RESOURCE_MANAGER;
+
+            if (R0 == -1) then
+                // no free entry in semaphore table
+                [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = -2;
+                [i] = -1;
+                [process_table_entry + 9] = 0;
+                SP = userSP;
+                ireturn;
+            endif;
+
+            [i+1] = R0;
+            multipop(R0, R1, R2, R3, R4);
+
+            [process_table_entry + 9] = 0;
+            SP = userSP;
+            ireturn;
+        endif;
+        i = i + 2;
+    endwhile;
+
+    // no free entry in per process resource table
+    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = -1;
+    [process_table_entry + 9] = 0;
+    SP = userSP;
+    ireturn;
+endif;
+
+if (sysno == 18) then
+    // semrelease
+    alias semid R2;
+    semid = [[PTBR + 2*(userSP-4)/512]*512 + (userSP-4)%512];
+    alias resource_table_entry R3;
+    resource_table_entry = [process_table_entry + 11]*512 + 496 + 2*semid;
+
+    if (semid<0 || semid>7 || [resource_table_entry]!=1) then
+        // invalid semid
+        [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = -1;
+        [process_table_entry + 9] = 0;
+        SP = userSP;
+        ireturn;
+    endif;
+
+    multipush(R0, R1, R2, R3, R4);
+    // release semaphore
+    R1 = 7;
+    R3 = [resource_table_entry + 1];
+    R2 = [SYSTEM_STATUS_TABLE + 1];
+    call RESOURCE_MANAGER;
+    multipop(R0, R1, R2, R3, R4);
+
+    [resource_table_entry] = -1;
+    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = 0;
+    [process_table_entry + 9] = 0;
+    SP = userSP;
+    ireturn;
+endif;

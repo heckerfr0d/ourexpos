@@ -50,3 +50,48 @@ if(functionNum == RELEASE_TERMINAL) then
     endif;
 
 endif;
+
+if (functionNum == 6) then
+    // acquire semaphore
+    alias i R0;
+    alias n R3;
+    i = SEMAPHORE_TABLE + 1;
+    n = SEMAPHORE_TABLE + 128;
+    while (i < n) do
+        if ([i]==0) then
+            [i] = 1;
+            [i-1] = -1;
+            R0 = (i - SEMAPHORE_TABLE - 1)/4;
+            return;
+        endif;
+        i = i + 4;
+    endwhile;
+    R0 = -1;
+    return;
+endif;
+
+if (functionNum == 7) then
+    // release semaphore
+    alias semid R3;
+    alias sem_entry R4;
+    sem_entry = SEMAPHORE_TABLE + semid*4;
+    if ([sem_entry]==currentPID) then
+        [sem_entry] = -1;
+        alias i R5;
+        i = PROCESS_TABLE + 20;
+        while (i<PROCESS_TABLE+256) do
+            if ([i]==WAIT_SEMAPHORE && [i+1]==semid) then
+                [i] = READY;
+            endif;
+            i = i + 16;
+        endwhile;
+    else
+        if ([sem_entry]!=-1 || [sem_entry+1]==0) then
+            R0 = -1;
+            return;
+        endif;
+    endif;
+    [sem_entry+1] = [sem_entry+1] - 1;
+    R0 = 0;
+    return;
+endif;

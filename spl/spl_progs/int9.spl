@@ -87,6 +87,7 @@ R1 = 1;
 call MEMORY_MANAGER;
 [PTBR+16] = R0;
 [PTBR+17] = "0110";
+R1 = 1;
 call MEMORY_MANAGER;
 [PTBR+18] = R0;
 [PTBR+19] = "0110";
