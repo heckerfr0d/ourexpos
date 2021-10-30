@@ -15,6 +15,10 @@ loadi(7, 20);
 loadi(8, 21);
 loadi(9, 22);
 
+// load int4
+loadi(10, 23);
+loadi(11, 24);
+
 // load int6
 loadi(14, 27);
 loadi(15, 28);
@@ -79,6 +83,9 @@ loadi(60, 4);
 // load DISK_FREE_LIST
 loadi(61, 2);
 
+// load ROOT_FILE
+loadi(62, 5);
+
 // load library
 loadi(63, 13);
 loadi(64, 14);
@@ -124,6 +131,7 @@ PTBR = PAGE_TABLE_BASE + 20;
 
 // INIT
 [PROCESS_TABLE+17] = 1;
+[PROCESS_TABLE+19] = 1;
 [PROCESS_TABLE+20] = CREATED;
 [PROCESS_TABLE+27] = 80;
 [PROCESS_TABLE+28] = 0;
@@ -140,6 +148,25 @@ PTBR = PAGE_TABLE_BASE + 20;
 [DISK_MAP_TABLE + 17] = -1;
 [DISK_MAP_TABLE + 18] = -1;
 [DISK_MAP_TABLE + 19] = -1;
+
+// init fst
+R0 = FILE_STATUS_TABLE;
+R1 = R0 + 240;
+while (R0<R1) do
+    [R0] = -1;
+    [R0+1] = -1;
+    R0 = R0+4;
+endwhile;
+
+// init buffer table
+R0 = BUFFER_TABLE;
+R1 = BUFFER_TABLE + 16;
+while (R0<R1) do
+    [R0] = -1;
+    [R0+1] = -1;
+    [R0+2] = 0;
+    R0 = R0 + 4;
+endwhile;
 
 // INIT per-process resource table
 R0 = 80*512 + 496;

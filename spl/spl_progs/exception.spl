@@ -39,7 +39,7 @@ endif;
 
 if (EPN == 2 || EPN == 3) then
     // heap
-    multipush(R0, R4);
+    multipush(R0);
     R1 = 1;
     call MEMORY_MANAGER;
     [PTBR+4] = R0;
@@ -47,19 +47,19 @@ if (EPN == 2 || EPN == 3) then
     call MEMORY_MANAGER;
     [PTBR+6] = R0;
     [PTBR+7] = "1110";
-    multipop(R0, R4);
+    multipop(R0);
 
 endif;
 
 if (EPN > 3 && EPN < 8) then
     // code
-    multipush(R0, R4);
+    multipush(R0);
     R1 = 5;
     R2 = [DISK_MAP_TABLE + 10*[SYSTEM_STATUS_TABLE + 1] + EPN];
     call MEMORY_MANAGER;
     [PTBR + 2*EPN] = R0;
     [PTBR + 2*EPN + 1] = "1100";
-    multipop(R0, R4);
+    multipop(R0);
 endif;
 
 [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 9] = 0;

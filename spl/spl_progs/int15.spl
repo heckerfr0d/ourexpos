@@ -1,0 +1,45 @@
+alias process_table_entry R4;
+process_table_entry = PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16;
+
+// store value of userSP in R0
+alias userSP R0;
+userSP = SP;
+
+// count switch to kernel mode
+[75*512 + 3] = [75*512 + 3] + 1;
+
+// set MODE FLAG (in PROCESS TABLE) to syscall number
+[process_table_entry + 9] = 21;
+
+// switch to kernel stack
+[process_table_entry + 13] = SP;
+SP = [process_table_entry + 11]*512 - 1;
+
+if ([SYSTEM_STATUS_TABLE+1]!=1 || [process_table_entry+3]!=1) then
+    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = 0;
+    [process_table_entry + 9] = 0;
+    SP = userSP;
+    ireturn;
+endif;
+
+// store DISK_FREE_LIST
+R1 = 1;
+R2 = [SYSTEM_STATUS_TABLE+1];
+R3 = 61;
+R4 = 2;
+call DEVICE_MANAGER;
+
+// store INODE_TABLE
+R3 = 59;
+R4 = 3;
+call DEVICE_MANAGER;
+R3 = 60;
+R4 = 4;
+call DEVICE_MANAGER;
+
+// store root file
+R3 = 62;
+R4 = 5;
+call DEVICE_MANAGER;
+
+halt;

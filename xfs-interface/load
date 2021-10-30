@@ -6,6 +6,7 @@ load --exhandler ../spl/spl_progs/exception.xsm
 load --int=timer ../spl/spl_progs/sample_timer.xsm
 load --int=console ../spl/spl_progs/console.xsm
 load --int=disk ../spl/spl_progs/disk.xsm
+load --int=4 ../spl/spl_progs/int4.xsm
 load --int=6 ../spl/spl_progs/int6.xsm
 load --int=7 ../spl/spl_progs/int7.xsm
 load --int=8 ../spl/spl_progs/int8.xsm
@@ -14,7 +15,7 @@ load --int=10 ../spl/spl_progs/int10.xsm
 load --int=11 ../spl/spl_progs/int11.xsm
 load --int=13 ../spl/spl_progs/int13.xsm
 load --int=14 ../spl/spl_progs/int14.xsm
-load --int=15 ../spl/spl_progs/haltprog.xsm
+load --int=15 ../spl/spl_progs/int15.xsm
 load --module 0 ../spl/spl_progs/mod0.xsm
 load --module 1 ../spl/spl_progs/mod1.xsm
 load --module 2 ../spl/spl_progs/mod2.xsm

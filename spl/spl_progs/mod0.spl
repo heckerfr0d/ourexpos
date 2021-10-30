@@ -51,6 +51,49 @@ if(functionNum == RELEASE_TERMINAL) then
 
 endif;
 
+if (functionNum == ACQUIRE_INODE) then
+    alias fid R3;
+    alias fst R4;
+    fst = FILE_STATUS_TABLE + fid*4;
+    while([fst] != -1 && [fst] != [SYSTEM_STATUS_TABLE+1]) do
+        [PROCESS_TABLE + 16*currentPID + 4] = WAIT_FILE;
+        [PROCESS_TABLE + 16*currentPID + 5] = fid;
+        multipush(R1, R2, R3);
+        call SCHEDULER;
+        multipop(R1, R2, R3);
+    endwhile;
+    if ([INODE_TABLE + fid*16 + 1]==-1) then
+        R0 = -1;
+        return;
+    endif;
+    [fst] = currentPID;
+    R0 = 0;
+    return;
+endif;
+
+if (functionNum == RELEASE_INODE) then
+    // release inode
+    alias fid R3;
+    alias fst R4;
+    fst = FILE_STATUS_TABLE + currentPID*4;
+    if ([fst]!=currentPID) then
+        R0 = -1;
+        return;
+    endif;
+
+    [fst] = -1;
+    alias i R5;
+    i = PROCESS_TABLE + 20;
+    while (i<PROCESS_TABLE+256) do
+        if ([i]==WAIT_FILE && [i+1]==fid) then
+            [i] = READY;
+        endif;
+        i = i + 16;
+    endwhile;
+    R0 = 0;
+    return;
+endif;
+
 if (functionNum == 6) then
     // acquire semaphore
     alias i R0;
