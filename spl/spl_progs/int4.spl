@@ -40,7 +40,7 @@ if (sysno == 1) then
         endif;
         i = i + 16;
     endwhile;
-print inode;
+
     if (inode==-1) then
         // inode full
         [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = -1;
@@ -107,14 +107,13 @@ if (sysno == 4) then
     alias idx R4;
     idx = (i - INODE_TABLE - 1)/16;
 
-breakpoint;
     multipush(R0, R1, R2, R3, R4);
     R1 = 4;
     R2 = [SYSTEM_STATUS_TABLE + 1];
     R3 = idx;
     call RESOURCE_MANAGER;
     multipop(R0, R1, R2, R3, R4);
-breakpoint;
+
     if ([FILE_STATUS_TABLE + idx*4 + 1] != -1) then
         // file is open
         multipush(R0, R1, R2, R3, R4);
@@ -136,20 +135,16 @@ breakpoint;
         if ([i+j]!=-1) then
             // block is not empty
             alias bt R6;
-            bt = BUFFER_TABLE;
-            while (bt < BUFFER_TABLE + 16) do
-                if ([bt]==[i+j] && [bt+1]==1) then
-                    // block is in buffer
-                    [bt+1] = 0;
-                    break;
-                endif;
-                bt = bt + 4;
-            endwhile;
-            multipush(R0, R1, R2, R3, R4, R5, R6);
+            bt = BUFFER_TABLE + [i+j]%4;
+            if ([bt]==[i+j]) then
+                // block is in buffer
+                [bt+1] = 0;
+            endif;
+            multipush(R0, R1, R2, R3, R4);
             R1 = 4;
             R2 = [i+j];
             call MEMORY_MANAGER;
-            multipop(R0, R1, R2, R3, R4, R5, R6);
+            multipop(R0, R1, R2, R3, R4);
             [i+j] = -1;
         endif;
         j = j + 1;
@@ -157,14 +152,14 @@ breakpoint;
 
     [i-1] = -1;
     [i] = -1;
-    [i+1] = -1;
+    [i+1] = 0;
     [i+2] = -1;
     [i+3] = -1;
 
-    alias root R5;
+    alias root R6;
     root = ROOT_FILE + idx*8;
     [root] = -1;
-    [root+1] = -1;
+    [root+1] = 0;
     [root+2] = -1;
     [root+3] = -1;
     [root+4] = -1;
