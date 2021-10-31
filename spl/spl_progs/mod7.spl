@@ -163,7 +163,7 @@ R0 = BUFFER_TABLE;
 R1 = BUFFER_TABLE + 16;
 while (R0<R1) do
     [R0] = -1;
-    [R0+1] = -1;
+    [R0+1] = 0;
     [R0+2] = -1;
     R0 = R0 + 4;
 endwhile;
