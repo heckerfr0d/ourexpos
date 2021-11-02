@@ -7,7 +7,6 @@ process_table_entry = PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16;
 // store value of userSP in R0
 alias userSP R0;
 userSP = SP;
-
 // switch to kernel stack
 [process_table_entry + 13] = SP;
 SP = [process_table_entry + 11]*512 - 1;
@@ -71,16 +70,15 @@ if (fileDesc != -1) then
 
                     [oft+2] = lseek + 1;
                     [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = 0;
-
-                    // release inode
-                    multipush(R0, R1, R2, R3, R4, R5);
-                    R1 = RELEASE_INODE;
-                    R2 = [SYSTEM_STATUS_TABLE + 1];
-                    R3 = [oft];
-                    call RESOURCE_MANAGER;
-                    multipop(R0, R1, R2, R3, R4, R5);
                 endif;
             endif;
+            // release inode
+            multipush(R0, R1, R2, R3, R4, R5);
+            R1 = RELEASE_INODE;
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            R3 = [oft];
+            call RESOURCE_MANAGER;
+            multipop(R0, R1, R2, R3, R4, R5);
         endif;
     endif;
 else

@@ -63,7 +63,6 @@ if(functionNum == ACQUIRE_TERMINAL) then
     endwhile;
     [TERMINAL_STATUS_TABLE] = 1;
     [TERMINAL_STATUS_TABLE + 1] = currentPID;
-    //breakpoint;
     return;
 endif;
 
@@ -79,11 +78,9 @@ if(functionNum == RELEASE_TERMINAL) then
             i=i+16;
         endwhile;
         R0=0;
-        // breakpoint;
         return;
     else
         R0=-1;
-        // breakpoint;
         return;
     endif;
 
@@ -93,7 +90,7 @@ if (functionNum == ACQUIRE_INODE) then
     alias fid R3;
     alias fst R4;
     fst = FILE_STATUS_TABLE + fid*4;
-    while([fst] != -1 && [fst] != [SYSTEM_STATUS_TABLE+1]) do
+    while([fst] != -1 && [fst] != currentPID) do
         [PROCESS_TABLE + 16*currentPID + 4] = WAIT_FILE;
         [PROCESS_TABLE + 16*currentPID + 5] = fid;
         multipush(R1, R2, R3);
@@ -113,7 +110,7 @@ if (functionNum == RELEASE_INODE) then
     // release inode
     alias fid R3;
     alias fst R4;
-    fst = FILE_STATUS_TABLE + currentPID*4;
+    fst = FILE_STATUS_TABLE + fid*4;
     if ([fst]!=currentPID) then
         R0 = -1;
         return;
