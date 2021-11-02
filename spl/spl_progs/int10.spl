@@ -4,9 +4,6 @@ process_table_entry = PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16;
 // set MODE FLAG (in PROCESS TABLE) to syscall number
 [process_table_entry + 9] = 10;
 
-// count switch to kernel mode
-[75*512 + 3] = [75*512 + 3] + 1;
-
 // switch to kernel stack
 [process_table_entry + 13] = SP;
 SP = [process_table_entry + 11]*512 - 1;

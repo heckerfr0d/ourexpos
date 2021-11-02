@@ -19,6 +19,10 @@ loadi(9, 22);
 loadi(10, 23);
 loadi(11, 24);
 
+// load int5
+loadi(12, 25);
+loadi(13, 26);
+
 // load int6
 loadi(14, 27);
 loadi(15, 28);
@@ -67,6 +71,10 @@ loadi(43, 56);
 // load MEMORY_MANAGER(mod2)
 loadi(44, 57);
 loadi(45, 58);
+
+// load FILE_MANAGER(mod3)
+loadi(46, 59);
+loadi(47, 60);
 
 // load DEVICE_MANAGER(mod4)
 loadi(48, 61);
@@ -155,6 +163,15 @@ R1 = R0 + 240;
 while (R0<R1) do
     [R0] = -1;
     [R0+1] = -1;
+    R0 = R0+4;
+endwhile;
+
+// init open file table
+R0 = OPEN_FILE_TABLE;
+R1 = R0 + 128;
+while (R0<R1) do
+    [R0] = -1;
+    [R0+1] = 0;
     R0 = R0+4;
 endwhile;
 

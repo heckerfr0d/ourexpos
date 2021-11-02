@@ -8,10 +8,6 @@ process_table_entry = PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16;
 alias userSP R0;
 userSP = SP;
 
-// count switch to kernel mode
-[75*512 + 3] = [75*512 + 3] + 1;
-
-
 // switch to kernel stack
 [process_table_entry + 13] = SP;
 SP = [process_table_entry + 11]*512 - 1;
@@ -106,8 +102,12 @@ j = [process_table_entry+11]*512 + 496;
 while (i < l) do
     [i] = [j];
     [i+1] = [j+1];
-    if ([j]==1) then
+    if ([j]==SEMAPHORE) then
         [SEMAPHORE_TABLE + [j+1]*4 + 1] = [SEMAPHORE_TABLE + [j+1]*4 + 1] + 1;
+    else
+        if ([j]==FILE) then
+            [OPEN_FILE_TABLE + [j+1]*4 + 1] = [OPEN_FILE_TABLE + [j+1]*4 + 1] + 1;
+        endif;
     endif;
     i = i + 2;
     j = j + 2;
