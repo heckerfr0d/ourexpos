@@ -1,23 +1,41 @@
 alias process_table_entry R4;
 process_table_entry = PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16;
 
-// store value of userSP in R0
-alias userSP R0;
-userSP = SP;
-
 // set MODE FLAG (in PROCESS TABLE) to syscall number
-[process_table_entry + 9] = 21;
+[process_table_entry + 9] = INT_SHUTDOWN;
+
+// shutdown not allowed
+if ([SYSTEM_STATUS_TABLE+1]>2 || [process_table_entry+3]!=1) then
+    [[PTBR + 2*(SP-1)/512]*512 + (SP-1)%512] = 0;
+    [process_table_entry + 9] = 0;
+    ireturn;
+endif;
 
 // switch to kernel stack
 [process_table_entry + 13] = SP;
 SP = [process_table_entry + 11]*512 - 1;
 
-if ([SYSTEM_STATUS_TABLE+1]!=1 || [process_table_entry+3]!=1) then
-    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = 0;
-    [process_table_entry + 9] = 0;
-    SP = userSP;
-    ireturn;
-endif;
+// mass murder
+R1 = KILL_ALL;
+R2 = [SYSTEM_STATUS_TABLE + 1];
+call PROCESS_MANAGER;
+
+// writeback buffers
+alias i R1;
+i = 1;
+while (i<16) do
+    if ([BUFFER_TABLE + i]==1) then
+        // writeback
+        multipush(R1);
+        R4 = [BUFFER_TABLE + i - 1];
+        R3 = BUFFER_BASE + i/4;
+        R2 = [SYSTEM_STATUS_TABLE+1];
+        R1 = DISK_STORE;
+        call DEVICE_MANAGER;
+        multipop(R1);
+    endif;
+    i = i + 4;
+endwhile;
 
 // store DISK_FREE_LIST
 R1 = 1;

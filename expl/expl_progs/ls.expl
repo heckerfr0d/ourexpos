@@ -5,15 +5,16 @@ decl
     string file, word;
 enddecl
 begin
-    temp = exposcall ("Write", -2, "FileName:");
-    temp = exposcall("Read", -1, file);
-    fd = exposcall("Open", file);
-    temp = exposcall("Write", -2, fd);
+    fd = exposcall("Open", "root");
     temp = exposcall("Read", fd, word);
     while (temp != -2) do
-        temp = exposcall("Write", -2, word);
+        if (word != "-1") then
+            temp = exposcall("Write", -2, word);
+        endif;
+        temp = exposcall("Seek", fd, 7);
         temp = exposcall("Read", fd, word);
     endwhile;
+    temp = exposcall("Close", fd);
     return 0;
 end
 }

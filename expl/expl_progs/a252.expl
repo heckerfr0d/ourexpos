@@ -1,0 +1,26 @@
+int main()
+{
+decl
+    int temp, fd, num;
+    string file;
+enddecl
+begin
+    temp = exposcall ("Write", -2, "FileName:");
+    temp = exposcall("Read", -1, file);
+    fd = exposcall("Open", file);
+    temp = exposcall("Seek", fd, 1100);
+    num = 2000;
+    while (num < 2514) do
+        temp = exposcall("Write", fd, num);
+        num = num+1;
+    endwhile;
+    temp = exposcall("Seek", fd, -1);
+    while (num > 1) do
+        temp = exposcall("Read", fd, num);
+        temp = exposcall("Write", -2, num);
+        temp = exposcall("Seek", fd, -2);
+    endwhile;
+    temp = exposcall("Close", fd);
+    return 0;
+end
+}

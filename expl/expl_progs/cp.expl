@@ -1,0 +1,28 @@
+int main()
+{
+decl
+    int temp, fdr, fdw;
+    string file1, file2, word;
+enddecl
+begin
+    temp = exposcall ("Write", -2, "File1:");
+    temp = exposcall("Read", -1, file1);
+    fdr = exposcall("Open", file1);
+    if (fdr < 0) then
+        temp = exposcall("Write", -2, "File not found");
+    else
+        temp = exposcall ("Write", -2, "File2:");
+        temp = exposcall("Read", -1, file2);
+        temp = exposcall("Create", file2, 1);
+        fdw = exposcall("Open", file2);
+        temp = exposcall("Read", fdr, word);
+        while (temp != -2) do
+            temp = exposcall("Write", fdw, word);
+            temp = exposcall("Read", fdr, word);
+        endwhile;
+        temp = exposcall("Close", fdr);
+        temp = exposcall("Close", fdw);
+    endif;
+    return 0;
+end
+}

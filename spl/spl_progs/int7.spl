@@ -1,39 +1,107 @@
+alias process_table_entry R4;
+process_table_entry = PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16;
+
 // set MODE FLAG (in PROCESS TABLE) to syscall number
-[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 9] = 5;
+[process_table_entry + 9] = 5;
 
 // store value of userSP in R0
 alias userSP R0;
 userSP = SP;
-
 // switch to kernel stack
-[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 13] = SP;
-SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 11]*512 - 1;
+[process_table_entry + 13] = SP;
+SP = [process_table_entry + 11]*512 - 1;
 
-// get arg1 from user stack
-alias physicalPage R1;
-alias offset R2;
-alias fileDesc R3;
-physicalPage = [PTBR + 2*(userSP-4)/512];
-offset = (userSP-4)%512;
-fileDesc = [physicalPage*512 + offset];
+// get fileDesc from user stack
+alias fileDesc R1;
+fileDesc = [[PTBR + 2*(userSP-4)/512]*512 + (userSP-4)%512];
+alias resource_table_entry R3;
+resource_table_entry = SP + 497 + fileDesc*2;
 
 if (fileDesc != -2) then
-    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = -1;
-else
-    
-    //print [[PTBR + 2*(userSP-3)/512]*512 + (userSP-3)%512];
+    if (fileDesc<0 || fileDesc>7 || [resource_table_entry]!=FILE) then
+        // no such file
+        [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = -1;
+    else
+        alias oft R5;
+        oft = OPEN_FILE_TABLE + [resource_table_entry + 1]*4;
+        alias inode R6;
+        inode = INODE_TABLE + [oft]*16;
+        if (([inode]!=DATA) || ([inode+4]==0 && [process_table_entry + 3]!=1 && [inode+3]!=[process_table_entry + 3])) then
+            // file is not a data file or not owned by current user
+            [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = -3;
+        else
+            // acquire inode
+            multipush(R0, R1, R2, R3, R4, R5, R6);
+            R1 = ACQUIRE_INODE;
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            R3 = [oft];
+            call RESOURCE_MANAGER;
+            if (R0 == -1) then
+                // acquire inode failed
+                multipop(R0, R1, R2, R3, R4, R5, R6);
+                [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = -1;
+            else
+                multipop(R0, R1, R2, R3, R4, R5, R6);
+                alias lseek R7;
+                lseek = [oft+2];
+                if (lseek == MAX_FILE_SIZE) then
+                    // max file size reached
+                    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = -2;
+                else
+                    if (lseek%512 == 0 && lseek == [inode+2]) then
+                        multipush(R0, R1, R2, R3, R4, R5, R6, R7);
+                        R1 = GET_FREE_BLOCK;
+                        call MEMORY_MANAGER;
+                        multipop(R1, R2, R3, R4, R5, R6, R7);
+                        if (R0 == -1) then
+                            // get free block failed
+                            multipop(R0);
+                            [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = -2;
+                        else
+                            [inode + 8 + lseek/512] = R0;
+                            multipop(R0);
+                        endif;
+                    endif;
+                    alias word R8;
+                    word = [[PTBR + 2*(userSP-3)/512]*512 + (userSP-3)%512];
+                    multipush(R0, R1, R2, R3, R4, R5, R6, R7, R8);
+                    R1 = BUFFERED_WRITE;
+                    R2 = [inode + 8 + lseek/512];
+                    R3 = lseek%512;
+                    R4 = word;
+                    call FILE_MANAGER;
+                    multipop(R0, R1, R2, R3, R4, R5, R6, R7, R8);
+                    if (lseek == [inode+2]) then
+                        [inode + 2] = lseek + 1;
+                        [ROOT_FILE + [oft]*8 + 1] = lseek + 1;
+                    endif;
+                    [oft + 2] = lseek + 1;
+                    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = 0;
 
-    alias word R4;
+                endif;
+            endif;
+            // release inode
+            multipush(R0, R1, R2, R3, R4, R5, R6, R7);
+            R1 = RELEASE_INODE;
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            R3 = [oft];
+            call RESOURCE_MANAGER;
+            multipop(R0, R1, R2, R3, R4, R5, R6, R7);
+        endif;
+    endif;
+
+else
+    alias word R5;
     word = [[PTBR + 2*(userSP-3)/512]*512 + (userSP-3)%512];
 
-    multipush(R0,R1,R2,R3,R4);
+    multipush(R0, R1, R2, R3, R4, R5);
     R1 = 3;
 	R2 = [SYSTEM_STATUS_TABLE + 1];
 	R3 = word;
 
     call DEVICE_MANAGER;
 
-    multipop(R0,R1,R2,R3,R4);
+    multipop(R0, R1, R2, R3, R4, R5);
 
     [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = 0;
 endif;
@@ -42,6 +110,6 @@ endif;
 SP = userSP;
 
 // reset MODE FLAG (in PROCESS TABLE) to 0
-[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 9] = 0;
+[process_table_entry + 9] = 0;
 
 ireturn;

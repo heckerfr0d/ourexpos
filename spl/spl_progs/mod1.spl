@@ -2,7 +2,7 @@
 alias functionNum R1;
 alias currentPID R2;
 
-if (functionNum == 1) then
+if (functionNum == GET_PCB_ENTRY) then
     // get PCB Entry
     alias i R0;
     i = PROCESS_TABLE + 20;
@@ -145,6 +145,62 @@ if (functionNum == FREE_PAGE_TABLE) then
     [dmt+6] = -1;
     [dmt+7] = -1;
     multipop(R1, R2, R3, R5);
+
+    return;
+endif;
+
+if (functionNum == KILL_ALL) then
+    // kill all processes
+    alias i R0;
+    alias idx R2;
+    i = INODE_TABLE + 17;
+    idx = 1;
+
+    // acquire all inodes
+    while (idx < MAX_FILE_NUM) do
+        if ([i] != -1 && [i-1] == DATA) then
+            multipush(R0, R1, R2);
+            // acquire inode
+            R1 = ACQUIRE_INODE;
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            R3 = idx;
+            call RESOURCE_MANAGER;
+            multipop(R0, R1, R2);
+        endif;
+        i = i + 16;
+        idx = idx + 1;
+    endwhile;
+
+    // exit all processes
+    i = PROCESS_TABLE + 36;
+    while (i < PROCESS_TABLE+256) do
+        if ([i]!=TERMINATED && [i-3]!=[SYSTEM_STATUS_TABLE+1]) then
+            multipush(R0, R1, R2);
+            R1 = EXIT_PROCESS;
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            call PROCESS_MANAGER;
+            multipop(R0, R1, R2);
+        endif;
+        i = i + 16;
+    endwhile;
+
+    i = INODE_TABLE + 17;
+    idx = 1;
+
+    // release all inodes
+    while (idx < MAX_FILE_NUM) do
+        if ([i] != -1 && [i-1] == DATA) then
+            multipush(R0, R1, R2);
+            // release inode
+            R1 = RELEASE_INODE;
+            R2 = [SYSTEM_STATUS_TABLE + 1];
+            R3 = idx;
+            call RESOURCE_MANAGER;
+            multipop(R0, R1, R2);
+        endif;
+        i = i + 16;
+        idx = idx + 1;
+    endwhile;
 
     return;
 endif;
