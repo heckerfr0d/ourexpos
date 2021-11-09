@@ -1,0 +1,28 @@
+int main()
+{
+decl
+    int temp, fd;
+    string user, word;
+enddecl
+begin
+    fd = exposcall("Open", "root");
+    temp = exposcall("Read", -1, user);
+    temp = exposcall("Seek", fd, 3);
+    temp = exposcall("Read", fd, word);
+    while (temp != -2) do
+        if (word == user) then
+            temp = exposcall("Seek", fd, -4);
+            temp = exposcall("Read", fd, word);
+            temp = exposcall("Write", -2, word);
+            temp = exposcall("Delete", word);
+            if(temp<0) then
+                temp = exposcall("Write", -2, "delete failed");
+            endif;
+        endif;
+        temp = exposcall("Seek", fd, 7);
+        temp = exposcall("Read", fd, word);
+    endwhile;
+    temp = exposcall("Close", fd);
+    return 0;
+end
+}

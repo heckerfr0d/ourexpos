@@ -152,20 +152,20 @@ endif;
 if (functionNum == KILL_ALL) then
     // kill all processes
     alias i R0;
-    alias idx R2;
+    alias idx R3;
     i = INODE_TABLE + 17;
     idx = 1;
 
     // acquire all inodes
     while (idx < MAX_FILE_NUM) do
         if ([i] != -1 && [i-1] == DATA) then
-            multipush(R0, R1, R2);
+            multipush(R0, R1, R2, R3);
             // acquire inode
             R1 = ACQUIRE_INODE;
             R2 = [SYSTEM_STATUS_TABLE + 1];
             R3 = idx;
             call RESOURCE_MANAGER;
-            multipop(R0, R1, R2);
+            multipop(R0, R1, R2, R3);
         endif;
         i = i + 16;
         idx = idx + 1;
@@ -174,12 +174,12 @@ if (functionNum == KILL_ALL) then
     // exit all processes
     i = PROCESS_TABLE + 36;
     while (i < PROCESS_TABLE+256) do
-        if ([i]!=TERMINATED && [i-3]!=[SYSTEM_STATUS_TABLE+1]) then
-            multipush(R0, R1, R2);
+        if ([i]!=TERMINATED && [i-3]!=currentPID) then
+            multipush(R0, R1, R2, R3);
             R1 = EXIT_PROCESS;
-            R2 = [SYSTEM_STATUS_TABLE + 1];
+            R2 = [i-3];
             call PROCESS_MANAGER;
-            multipop(R0, R1, R2);
+            multipop(R0, R1, R2, R3);
         endif;
         i = i + 16;
     endwhile;
@@ -190,13 +190,13 @@ if (functionNum == KILL_ALL) then
     // release all inodes
     while (idx < MAX_FILE_NUM) do
         if ([i] != -1 && [i-1] == DATA) then
-            multipush(R0, R1, R2);
+            multipush(R0, R1, R2, R3);
             // release inode
             R1 = RELEASE_INODE;
             R2 = [SYSTEM_STATUS_TABLE + 1];
             R3 = idx;
             call RESOURCE_MANAGER;
-            multipop(R0, R1, R2);
+            multipop(R0, R1, R2, R3);
         endif;
         i = i + 16;
         idx = idx + 1;

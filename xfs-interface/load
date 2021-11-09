@@ -1,6 +1,7 @@
 load --os ../spl/spl_progs/os_startup.xsm
 load --library ../expl/library.lib
-load --init ../expl/expl_progs/shell.xsm
+load --init ../expl/expl_progs/login.xsm
+load --shell ../expl/expl_progs/shell.xsm
 load --idle ../expl/expl_progs/idle.xsm
 load --exhandler ../spl/spl_progs/exception.xsm
 load --int=timer ../spl/spl_progs/sample_timer.xsm
@@ -14,9 +15,12 @@ load --int=8 ../spl/spl_progs/int8.xsm
 load --int=9 ../spl/spl_progs/int9.xsm
 load --int=10 ../spl/spl_progs/int10.xsm
 load --int=11 ../spl/spl_progs/int11.xsm
+load --int=12 ../spl/spl_progs/int12.xsm
 load --int=13 ../spl/spl_progs/int13.xsm
 load --int=14 ../spl/spl_progs/int14.xsm
 load --int=15 ../spl/spl_progs/int15.xsm
+load --int=16 ../spl/spl_progs/int16.xsm
+load --int=17 ../spl/spl_progs/int17.xsm
 load --module 0 ../spl/spl_progs/mod0.xsm
 load --module 1 ../spl/spl_progs/mod1.xsm
 load --module 2 ../spl/spl_progs/mod2.xsm

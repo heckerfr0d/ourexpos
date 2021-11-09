@@ -1,15 +1,14 @@
 alias process_table_entry R4;
 process_table_entry = PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16;
 
-// set MODE FLAG (in PROCESS TABLE) to syscall number
-[process_table_entry + 9] = INT_SHUTDOWN;
-
 // shutdown not allowed
-if ([SYSTEM_STATUS_TABLE+1]>2 || [process_table_entry+3]!=1) then
+if ([SYSTEM_STATUS_TABLE+1]>2 || [process_table_entry+3]>1) then
     [[PTBR + 2*(SP-1)/512]*512 + (SP-1)%512] = 0;
-    [process_table_entry + 9] = 0;
     ireturn;
 endif;
+
+// set MODE FLAG (in PROCESS TABLE) to syscall number
+[process_table_entry + 9] = INT_SHUTDOWN;
 
 // switch to kernel stack
 [process_table_entry + 13] = SP;

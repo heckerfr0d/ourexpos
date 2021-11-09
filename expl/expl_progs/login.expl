@@ -1,0 +1,29 @@
+int main()
+{
+decl
+    int temp, pid;
+    string username, password;
+enddecl
+begin
+    while (1 == 1) do
+        temp = exposcall ("Write", -2, "login:");
+        temp = exposcall("Read", -1, username);
+        if (username == "goodbye") then
+            temp = exposcall ("Write", -2, "byyeeee");
+            temp = exposcall ("Shutdown");
+        endif;
+        temp = exposcall("Read", -1, password);
+        temp = exposcall("Login", username, password);
+        if (temp == -1) then
+            temp = exposcall ("Write", -2, "Invalid Cred");
+        else
+            if (temp == -2) then
+                temp = exposcall ("Write", -2, "Access Denied");
+            else
+                temp = exposcall ("Write", -2, "Goodbye!");
+            endif;
+        endif;
+    endwhile;
+    return 0;
+end
+}
