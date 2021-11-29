@@ -20,6 +20,7 @@ if(EC != 0) then
         print "IllInstruct!";
     endif;
     if(EC == 2) then
+        breakpoint;
         print "IllegalMemAcc";
     endif;
     if(EC == 3) then

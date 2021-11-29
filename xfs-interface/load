@@ -4,7 +4,7 @@ load --init ../expl/expl_progs/login.xsm
 load --shell ../expl/expl_progs/shell.xsm
 load --idle ../expl/expl_progs/idle.xsm
 load --exhandler ../spl/spl_progs/exception.xsm
-load --int=timer ../spl/spl_progs/sample_timer.xsm
+load --int=timer ../spl/spl_progs/timer.xsm
 load --int=console ../spl/spl_progs/console.xsm
 load --int=disk ../spl/spl_progs/disk.xsm
 load --int=4 ../spl/spl_progs/int4.xsm
@@ -27,4 +27,5 @@ load --module 2 ../spl/spl_progs/mod2.xsm
 load --module 3 ../spl/spl_progs/mod3.xsm
 load --module 4 ../spl/spl_progs/mod4.xsm
 load --module 5 ../spl/spl_progs/mod5.xsm
+load --module 6 ../spl/spl_progs/mod6.xsm
 load --module 7 ../spl/spl_progs/mod7.xsm

@@ -9,27 +9,36 @@ alias process_table_entry R1;
 process_table_entry = PROCESS_TABLE + currentPID*16;
 
 [process_table_entry + 12] = SP%512;
-// [process_table_entry + 14] = PTBR;
-// [process_table_entry + 15] = PTLR;
 
-alias i R3;
 alias newPID R4;
-i = process_table_entry+20;
-while (i<PROCESS_TABLE+256) do
-	if([i]==READY || [i]==CREATED) then
-        newPID = [i-3];
-        break;
+
+if([SYSTEM_STATUS_TABLE + 5] != 0) then
+    if ([PROCESS_TABLE + 244] != WAIT_DISK) then
+        newPID = 15;
+    else
+        newPID = 0;
     endif;
-	i = i + 16;
-endwhile;
-if(i>=PROCESS_TABLE+256) then
-    newPID = 0;
+else
+    alias i R3;
+    i = process_table_entry+20;
+    while (i<PROCESS_TABLE+240) do
+        if([i+2]==0 && ([i]==READY || [i]==CREATED)) then
+            newPID = [i-3];
+            break;
+        endif;
+        i = i + 16;
+    endwhile;
+
+    if(i>=PROCESS_TABLE+240) then
+        newPID = 0;
+    endif;
 endif;
 
 process_table_entry = PROCESS_TABLE + newPID*16;
 PTBR = [process_table_entry + 14];
 PTLR = [process_table_entry + 15];
 [SYSTEM_STATUS_TABLE + 1] = newPID;
+
 
 if([process_table_entry + 4]==CREATED) then
     SP = [process_table_entry + 13];

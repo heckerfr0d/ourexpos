@@ -116,3 +116,19 @@ if (functionNum == GET_CODE_PAGE) then
 
     return;
 endif;
+
+if (functionNum == GET_SWAP_BLOCK) then
+    alias block R2;
+    block = DISK_SWAP_AREA;
+    while (block < DISK_SIZE) do
+        if([DISK_FREE_LIST + block] == 0) then
+            [DISK_FREE_LIST + block] = 1;
+            R0 = block;
+            return;
+        endif;
+        block = block + 1;
+    endwhile;
+    R0 = -1;
+    breakpoint;
+    return;
+endif;

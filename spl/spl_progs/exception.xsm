@@ -62,6 +62,7 @@ _L6:
 MOV R16, 2
 EQ R16, EC
 JZ R16, _L7
+BRKP
 MOV R16, "IllegalMemAcc"
 PORT P1, R16
 OUT
