@@ -2,12 +2,12 @@
 
 all:
 	$(MAKE) -C expl
-	$(MAKE) -C spl
-	$(MAKE) -C xfs-interface
-	$(MAKE) -C xsm
+	$(MAKE) -C nespl
+	$(MAKE) -C nexfs-interface
+	$(MAKE) -C nexsm
 
 clean:
 	$(MAKE) -C expl clean
-	$(MAKE) -C spl clean
-	$(MAKE) -C xfs-interface clean
-	$(MAKE) -C xsm clean
+	$(MAKE) -C nespl clean
+	$(MAKE) -C nexfs-interface clean
+	$(MAKE) -C nexsm clean

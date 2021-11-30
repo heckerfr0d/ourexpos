@@ -3,9 +3,9 @@
 !Makefile
 !README.md
 !.gitignore
-!xfs-interface
-xfs-interface/*
-!xfs-interface/load
+!nexfs-interface
+nexfs-interface/*
+!nexfs-interface/load
 !*l
 *l/*
 !*l/*_progs
