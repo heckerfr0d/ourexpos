@@ -1,0 +1,67 @@
+// ACCESS CONTROL
+
+define KERN_FLAGS 29579;
+define SCHED_FLAGS 29581;
+
+alias functionNum R1;
+
+if (functionNum == ACQUIRE_KERN_LOCK) then
+    // if paging or logout call scheduler
+    if (CORE == 1) then
+        if ([SYSTEM_STATUS_TABLE+5] != 0 || [SYSTEM_STATUS_TABLE+7] != 0) then
+            [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+5*CORE+1]*16 + 4] = READY;
+
+            call SCHEDULER;
+
+        endif;
+    endif;
+
+    // peterson
+    multipush(R0);
+    alias other R0;
+    other = 1-CORE;
+    [KERN_FLAGS+CORE] = 1;
+    [KERN_LOCK] = other;
+    while ([KERN_FLAGS+other] == 1 && [KERN_LOCK] == other) do
+        continue;
+    endwhile;
+    multipop(R0);
+
+    return;
+endif;
+
+if(functionNum == ACQUIRE_SCHED_LOCK) then
+    // peterson
+    multipush(R0);
+    alias other R0;
+    other = 1-CORE;
+    [SCHED_FLAGS+CORE] = 1;
+    [SCHED_LOCK] = other;
+    while ([SCHED_FLAGS+other] == 1 && [SCHED_LOCK] == other) do
+        continue;
+    endwhile;
+    multipop(R0);
+
+    return;
+
+    return;
+endif;
+
+// if(functionNum == ACQUIRE_GLOCK) then
+//     while (tsl(GLOCK) == 1) do
+//         continue;
+//     endwhile;
+
+//     return;
+// endif;
+
+if(functionNum == RELEASE_LOCK) then
+    alias lockAddr R2;
+    if (lockAddr == KERN_LOCK) then
+        [KERN_FLAGS+CORE] = 0;
+    endif;
+    if (lockAddr == SCHED_LOCK) then
+        [SCHED_FLAGS+CORE] = 0;
+    endif;
+    return;
+endif;
