@@ -1,0 +1,153 @@
+alias process_table_entry R4;
+process_table_entry = PROCESS_TABLE + 32;
+
+// store value of userSP in R0
+alias userSP R0;
+userSP = SP;
+
+// extract syscall number from user stack
+alias sysno R1;
+sysno = [[PTBR + 2*(userSP-5)/512]*512 + (userSP-5)%512];
+
+alias retAdd R2;
+retAdd = [PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512;
+
+// set MODE FLAG (in PROCESS TABLE) to syscall number
+[process_table_entry + 9] = sysno;
+
+// switch to kernel stack
+[process_table_entry + 13] = SP;
+SP = [process_table_entry + 11]*512 - 1;
+
+
+if (sysno <= INT_REMUSR) then
+    multipush(R0, R1, R2, R4);
+    R1 = ACQUIRE_KERN_LOCK;
+    call ACCESS_CONTROL;
+    multipop(R0, R1, R2, R4);
+
+    // only root shell can create/remove user
+    if ([process_table_entry+3]!=1 || [SYSTEM_STATUS_TABLE+5*CORE+1]!=2) then
+        [retAdd] = -2;
+    else
+        alias username R3;
+        username = [[PTBR + 2*(userSP-4)/512]*512 + (userSP-4)%512];
+        if (username == "root" || username ==  "kernel") then
+            [retAdd] = 21-sysno; //23 returns -2, 22 returns -1
+        else
+            alias i R5;
+            alias idx R6;
+            idx = -1;
+            i = USER_TABLE;
+            while (i < USER_TABLE + 32) do
+                if ([i]==username) then
+                    if (sysno == INT_REMUSR) then
+                        alias root R7;
+                        root = ROOT_FILE+3;
+                        while (root < ROOT_FILE + 480) do
+                            if ([root]==username) then
+                                [retAdd] = -3;
+                                goto end;
+                            endif;
+                            root = root + 8;
+                        endwhile;
+                        [i] = -1;
+                        [i + 1] = -1;
+                        [retAdd] = 0;
+                        goto end;
+                    else
+                        [retAdd] = -1;
+                        goto end;
+                    endif;
+                endif;
+                if ([i]==-1 && idx==-1) then
+                    idx = i;
+                endif;
+                i = i + 2;
+            endwhile;
+            if (sysno == INT_NEWUSR) then
+                if (idx==-1) then
+                    [retAdd] = -3;
+                else
+                    [idx] = username;
+                    alias password R8;
+                    password = [[PTBR + 2*(userSP-3)/512]*512 + (userSP-3)%512];
+                    encrypt password;
+                    [idx + 1] = password;
+                    [retAdd] = 0;
+                endif;
+            else
+                [retAdd] = -1;
+            endif;
+        endif;
+    endif;
+    goto end;
+endif;
+
+
+if (sysno == INT_SETPWD) then
+    // only shell can change password
+    if ([SYSTEM_STATUS_TABLE+5*CORE+1]!=2) then
+        [retAdd] = -1;
+    else
+        alias username R3;
+        username = [[PTBR + 2*(userSP-4)/512]*512 + (userSP-4)%512];
+        alias i R5;
+        i = USER_TABLE;
+        while (i < USER_TABLE + 32) do
+            if ([i]==username) then
+                if ((i-USER_TABLE)/2 == [process_table_entry+3] || [process_table_entry+3] == 1) then
+                    alias password R6;
+                    password = [[PTBR + 2*(userSP-3)/512]*512 + (userSP-3)%512];
+                    encrypt password;
+                    [i + 1] = password;
+                    [retAdd] = 0;
+                else
+                    [retAdd] = -1;
+                endif;
+                goto end2;
+            endif;
+            i = i + 2;
+        endwhile;
+        [retAdd] = -2;
+    endif;
+    goto end2;
+endif;
+
+if (sysno == INT_GETUID) then
+    alias username R3;
+    username = [[PTBR + 2*(userSP-4)/512]*512 + (userSP-4)%512];
+    alias i R4;
+    i = USER_TABLE;
+    while (i < USER_TABLE + 32) do
+        if ([i]==username) then
+            [retAdd] = (i-USER_TABLE)/2;
+            goto end2;
+        endif;
+        i = i + 2;
+    endwhile;
+    [retAdd] = -1;
+    goto end2;
+endif;
+
+if (sysno == INT_GETUNAME) then
+    alias uid R3;
+    uid = [[PTBR + 2*(userSP-4)/512]*512 + (userSP-4)%512];
+    if (uid<0 || uid>15 || [USER_TABLE + 2*uid]==-1) then
+        [retAdd] = -1;
+    else
+        [retAdd] = [USER_TABLE + 2*uid];
+    endif;
+    goto end2;
+endif;
+
+end:
+multipush(R0, R4);
+R1 = RELEASE_LOCK;
+R2 = KERN_LOCK;
+call ACCESS_CONTROL;
+multipop(R0, R4);
+end2:
+[process_table_entry + 9] = 0;
+SP = userSP;
+ireturn;

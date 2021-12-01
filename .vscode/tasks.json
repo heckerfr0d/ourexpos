@@ -22,7 +22,7 @@
         // replace 'load' with the name of your batch file with xfs commands
         "command": "./xfs-interface run load && tput setaf 2; echo load done!",
         "options": {
-          "cwd": "${workspaceFolder}/xfs-interface",
+          "cwd": "${workspaceFolder}/nexfs-interface",
           "shell": {
             "executable": "",
             "args": []
@@ -40,7 +40,7 @@
         // replace 10 with required timer value
         "args": ["--debug"],//, "--timer", "10"],
         "options": {
-          "cwd": "${workspaceFolder}/xsm",
+          "cwd": "${workspaceFolder}/nexsm",
           "shell": {
             "executable": "",
             "args": []

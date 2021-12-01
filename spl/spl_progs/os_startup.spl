@@ -1,0 +1,104 @@
+// load module 7
+loadi(54, 67);
+loadi(55, 68);
+
+// load idle
+loadi(69,11);
+
+SP = 70*512 - 1;
+
+call BOOT_MODULE;
+
+PTBR = PAGE_TABLE_BASE;
+PTLR = 10;
+
+// invalidate PTB
+while (PTBR < PAGE_TABLE_BASE+320) do
+    [PTBR] = -1;
+    [PTBR+1] = "0000";
+    PTBR = PTBR + 2;
+    if (PTBR == PAGE_TABLE_BASE+20) then
+        PTBR = PAGE_TABLE_BASE+280;
+    endif;
+endwhile;
+
+PTBR = PAGE_TABLE_BASE + 300;
+// Swapper Page Table Entry
+// Code
+[PTBR+8] = 69;
+[PTBR+9] = "0100";
+
+//Stack
+[PTBR+16] = 81;
+[PTBR+17] = "0110";
+
+
+PTBR = PAGE_TABLE_BASE+280;
+// Idle2 Page Table Entry
+// Code
+[PTBR+8] = 69;
+[PTBR+9] = "0100";
+//Stack
+[PTBR+16] = 83;
+[PTBR+17] = "0110";
+
+
+PTBR = PAGE_TABLE_BASE;
+// Idle Page Table Entry
+// Code
+[PTBR+8] = 69;
+[PTBR+9] = "0100";
+//Stack
+[PTBR+16] = 70;
+[PTBR+17] = "0110";
+
+
+
+// Idle PROCESS_TABLE entry
+[PROCESS_TABLE] = 0;                    // TICK
+[PROCESS_TABLE+1] = 0;                  // PID
+[PROCESS_TABLE+3] = 0;                  // USERID
+[PROCESS_TABLE+4] = RUNNING;            // STATE
+[PROCESS_TABLE+6] = 0;                  // SWAP
+[PROCESS_TABLE+11] = 76;                // UAPage
+[PROCESS_TABLE+12] = 0;                 // KPTR
+[PROCESS_TABLE+13] = 4096;              // UPTR
+[PROCESS_TABLE+14] = PAGE_TABLE_BASE;   // PTBR
+[PROCESS_TABLE+15] = 10;                // PTLR
+
+// Idle2 PROCESS_TABLE entry
+[PROCESS_TABLE+224] = 0;                    // TICK
+[PROCESS_TABLE+225] = 14;                 // PID
+[PROCESS_TABLE+227] = 0;                  // USERID
+[PROCESS_TABLE+228] = RUNNING;            // STATE
+[PROCESS_TABLE+230] = 0;                  // SWAP
+[PROCESS_TABLE+235] = 84;                // UAPage
+[PROCESS_TABLE+236] = 0;                 // KPTR
+[PROCESS_TABLE+237] = 4096;              // UPTR
+[PROCESS_TABLE+238] = PAGE_TABLE_BASE+280;   // PTBR
+[PROCESS_TABLE+239] = 10;                // PTLR
+
+// Swapper PROCESS_TABLE entry
+[PROCESS_TABLE+240] = 0;                  // TICK
+[PROCESS_TABLE+241] = 15;                 // PID
+[PROCESS_TABLE+243] = 0;                  // USERID
+[PROCESS_TABLE+244] = CREATED;            // STATE
+[PROCESS_TABLE+246] = 0;                  // SWAP
+[PROCESS_TABLE+251] = 82;                // UAPage
+[PROCESS_TABLE+252] = 0;                 // KPTR
+[PROCESS_TABLE+253] = 4096;              // UPTR
+[PROCESS_TABLE+254] = PAGE_TABLE_BASE+300;   // PTBR
+[PROCESS_TABLE+255] = 10;                // PTLR
+
+
+// SYSTEM_STATUS_TABLE
+[SYSTEM_STATUS_TABLE+5*CORE+1] = 0;
+
+[70*512] = [69*512+1];
+[81*512] = [69*512+1];
+
+SP = 4096;
+
+start;
+
+ireturn;

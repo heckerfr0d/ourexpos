@@ -1,0 +1,90 @@
+// SCHEDULER
+
+alias currentPID R0;
+currentPID = [SYSTEM_STATUS_TABLE+5*CORE+1];
+
+multipush(BP);
+
+R1 = ACQUIRE_SCHED_LOCK;
+call ACCESS_CONTROL;
+
+alias process_table_entry R1;
+process_table_entry = PROCESS_TABLE + currentPID*16;
+
+[process_table_entry + 12] = SP%512;
+
+alias newPID R4;
+alias idle R2;
+if (CORE == 0) then
+    if ([SYSTEM_STATUS_TABLE + 7] == 1 && [SYSTEM_STATUS_TABLE + 6] != 14) then
+        newPID = 0;
+        goto gotpid;
+    endif;
+    if([SYSTEM_STATUS_TABLE + 5] != 0) then
+        if ([PROCESS_TABLE + 244] != WAIT_DISK) then
+            newPID = 15;
+        else
+            newPID = 0;
+        endif;
+        goto gotpid;
+    endif;
+    idle = 0;
+else
+    if ([SYSTEM_STATUS_TABLE + 7] == 1 || [SYSTEM_STATUS_TABLE + 5] != 0) then
+        newPID = 14;
+        goto gotpid;
+    endif;
+    idle = 14;
+endif;
+
+
+alias i R3;
+i = process_table_entry+20+32*CORE;
+while (i<PROCESS_TABLE+224) do
+    if([i+2]==0 && ([i]==READY || [i]==CREATED)) then
+        newPID = [i-3];
+        break;
+    endif;
+    i = i + 16;
+endwhile;
+
+if(i>=PROCESS_TABLE+224) then
+    newPID = idle;
+endif;
+
+gotpid:
+
+process_table_entry = PROCESS_TABLE + newPID*16;
+PTBR = [process_table_entry + 14];
+PTLR = [process_table_entry + 15];
+[SYSTEM_STATUS_TABLE + 1 + 5*CORE] = newPID;
+
+
+if([process_table_entry + 4]==CREATED) then
+
+    multipush(R1, R2);
+    R1 = RELEASE_LOCK;
+    R2 = SCHED_LOCK;
+    call ACCESS_CONTROL;
+    multipop(R1, R2);
+
+    SP = [process_table_entry + 13];
+    BP = [[process_table_entry + 11]*512];
+    [process_table_entry + 4] = RUNNING;
+    [process_table_entry + 9] = 0;
+
+    ireturn;
+endif;
+
+[process_table_entry + 4] = RUNNING;
+multipush(R1, R2);
+R1 = RELEASE_LOCK;
+R2 = SCHED_LOCK;
+call ACCESS_CONTROL;
+multipop(R1, R2);
+SP = [process_table_entry + 11]*512 + [process_table_entry + 12];
+
+multipop(BP);
+
+
+return;

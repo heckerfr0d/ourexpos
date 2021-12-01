@@ -1,0 +1,44 @@
+// ACCESS CONTROL
+
+alias functionNum R1;
+
+if (functionNum == ACQUIRE_KERN_LOCK) then
+    // if paging or logout call scheduler
+    if (CORE == 1) then
+        if ([SYSTEM_STATUS_TABLE+5] != 0 || [SYSTEM_STATUS_TABLE+7] != 0) then
+            [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+5*CORE+1]*16 + 4] = READY;
+
+            call SCHEDULER;
+
+        endif;
+    endif;
+
+    // test and set lock
+    while (tsl(KERN_LOCK) == 1) do
+        continue;
+    endwhile;
+
+    return;
+endif;
+
+if(functionNum == ACQUIRE_SCHED_LOCK) then
+    while (tsl(SCHED_LOCK) == 1) do
+        continue;
+    endwhile;
+
+    return;
+endif;
+
+if(functionNum == ACQUIRE_GLOCK) then
+    while (tsl(GLOCK) == 1) do
+        continue;
+    endwhile;
+
+    return;
+endif;
+
+if(functionNum == RELEASE_LOCK) then
+    alias lockAddr R2;
+    [lockAddr] = 0;
+    return;
+endif;

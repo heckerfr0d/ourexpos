@@ -1,0 +1,111 @@
+alias process_table_entry R4;
+process_table_entry = PROCESS_TABLE + [SYSTEM_STATUS_TABLE+5*CORE+1]*16;
+
+// set MODE FLAG (in PROCESS TABLE) to syscall number
+[process_table_entry + 9] = 7;
+
+// store value of userSP in R0
+alias userSP R0;
+userSP = SP;
+// switch to kernel stack
+[process_table_entry + 13] = SP;
+SP = [process_table_entry + 11]*512 - 1;
+
+multipush(R0, R4);
+R1 = ACQUIRE_KERN_LOCK;
+call ACCESS_CONTROL;
+multipop(R0, R4);
+
+// get fileDesc from user stack
+alias fileDesc R1;
+fileDesc = [[PTBR + 2*(userSP-4)/512]*512 + (userSP-4)%512];
+alias resource_table_entry R3;
+resource_table_entry = SP + 497 + fileDesc*2;
+
+if (fileDesc != -1) then
+    if (fileDesc<0 || fileDesc>7 || [resource_table_entry]!=FILE) then
+        // no such file
+        [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = -1;
+    else
+        alias oft R5;
+        oft = OPEN_FILE_TABLE + [resource_table_entry + 1]*4;
+
+        // acquire inode
+        multipush(R0, R1, R2, R3, R4, R5);
+        R1 = ACQUIRE_INODE;
+        R2 = [SYSTEM_STATUS_TABLE+5*CORE+1];
+        R3 = [oft];
+        call RESOURCE_MANAGER;
+        if (R0 == -1) then
+            // acquire inode failed
+            multipop(R0, R1, R2, R3, R4, R5);
+            [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = -1;
+        else
+            multipop(R0, R1, R2, R3, R4, R5);
+            alias inode R6;
+            alias lseek R7;
+            inode = INODE_TABLE + [oft]*16;
+            lseek = [oft+2];
+            if (lseek == [inode+2]) then
+                // eof
+                [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = -2;
+            else
+                alias target R8;
+                target = [[PTBR + 2*(userSP-3)/512]*512 + (userSP-3)%512];
+                target = [PTBR + 2*target/512]*512 + target%512;
+                if ([oft] == INODE_ROOT) then
+                    [target] = [ROOT_FILE + lseek];
+                    [oft+2] = lseek + 1;
+                    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = 0;
+                else
+                    multipush(R0, R1, R2, R3, R4, R5, R6, R7, R8);
+                    R1 = BUFFERED_READ;
+                    R2 = [inode + 8 + lseek/512];
+                    R3 = lseek%512;
+                    R4 = target;
+                    call FILE_MANAGER;
+                    multipop(R0, R1, R2, R3, R4, R5, R6, R7, R8);
+
+                    [oft+2] = lseek + 1;
+                    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = 0;
+                endif;
+            endif;
+            // release inode
+            multipush(R0, R1, R2, R3, R4, R5);
+            R1 = RELEASE_INODE;
+            R2 = [SYSTEM_STATUS_TABLE+5*CORE+1];
+            R3 = [oft];
+            call RESOURCE_MANAGER;
+            multipop(R0, R1, R2, R3, R4, R5);
+        endif;
+    endif;
+else
+    alias word R5;
+    word = [[PTBR + 2*(userSP-3)/512]*512 + (userSP-3)%512];
+
+    multipush(R0, R1, R2, R3, R4, R5);
+    R1 = 4;
+	R2 = [SYSTEM_STATUS_TABLE+5*CORE+1];
+	R3 = word;
+
+    call DEVICE_MANAGER;
+
+    multipop(R0, R1, R2, R3, R4, R5);
+
+    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = 0;
+endif;
+
+
+// reset MODE FLAG (in PROCESS TABLE) to 0
+[process_table_entry + 9] = 0;
+
+multipush(R0);
+R1 = RELEASE_LOCK;
+R2 = KERN_LOCK;
+call ACCESS_CONTROL;
+multipop(R0);
+
+// restore SP to userSP
+SP = userSP;
+
+ireturn;

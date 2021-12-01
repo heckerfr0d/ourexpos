@@ -1,0 +1,8 @@
+[83*512] = [69*512+1];
+
+PTBR = PAGE_TABLE_BASE + 280;
+PTLR = 10;
+
+SP = 4096;
+
+ireturn;

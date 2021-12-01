@@ -1,0 +1,148 @@
+// FILE_MANAGER
+alias functionNum R1;
+
+if (functionNum <= BUFFERED_READ) then
+    alias diskno R2;
+    alias offset R3;
+    alias target R4;
+
+    // acquire buffer
+    multipush(R1, R2, R3, R4);
+    R3 = diskno%4;
+    R2 = [SYSTEM_STATUS_TABLE+5*CORE+1];
+    R1 = ACQUIRE_BUFFER;
+    call RESOURCE_MANAGER;
+    multipop(R1, R2, R3, R4);
+
+    alias bt R5;
+    bt = BUFFER_TABLE + (diskno%4)*4;
+
+    if ([bt] != diskno) then
+        // contains a different block
+        if ([bt+1]==1) then
+            // writeback
+            multipush(R1, R2, R3, R4, R5);
+            R4 = [bt];
+            R3 = BUFFER_BASE + diskno%4;
+            R2 = [SYSTEM_STATUS_TABLE+5*CORE+1];
+            R1 = DISK_STORE;
+            call DEVICE_MANAGER;
+            multipop(R1, R2, R3, R4, R5);
+            [bt+1] = 0;
+        endif;
+        // load
+        multipush(R1, R2, R3, R4, R5);
+        R4 = diskno;
+        R3 = BUFFER_BASE + diskno%4;
+        R2 = [SYSTEM_STATUS_TABLE+5*CORE+1];
+        R1 = DISK_LOAD;
+        call DEVICE_MANAGER;
+        multipop(R1, R2, R3, R4, R5);
+        [bt] = diskno;
+    endif;
+
+    if (functionNum == BUFFERED_READ) then
+        [target] = [(BUFFER_BASE + diskno%4)*512 + offset];
+    else
+        [(BUFFER_BASE + diskno%4)*512 + offset] = target;
+        [bt+1] = 1;
+    endif;
+
+    // release buffer
+    multipush(R1, R2, R3, R4, R5);
+    R3 = diskno%4;
+    R2 = [SYSTEM_STATUS_TABLE+5*CORE+1];
+    R1 = RELEASE_BUFFER;
+    call RESOURCE_MANAGER;
+    multipop(R1, R2, R3, R4, R5);
+    return;
+endif;
+
+
+if (functionNum == OPEN) then
+    alias fileName R2;
+    alias idx R4;
+    alias i R3;
+
+    if (fileName == "root") then
+        idx = INODE_ROOT;
+    else
+        i = INODE_TABLE + 1;
+        while (i < INODE_TABLE + 960) do
+            if ([i]==fileName) then
+                break;
+            endif;
+            i = i + 16;
+        endwhile;
+        if (i>=INODE_TABLE + 960 || [i-1]==EXEC) then
+            // file not found or is EXEC
+            R0 = -1;
+            return;
+        endif;
+
+        idx = (i-INODE_TABLE-1)/16;
+
+        // acquire inode
+        multipush(R1, R2, R3, R4);
+        R1 = ACQUIRE_INODE;
+        R2 = [SYSTEM_STATUS_TABLE+5*CORE+1];
+        R3 = idx;
+        call RESOURCE_MANAGER;
+        if (R0 == -1) then
+            multipop(R1, R2, R3, R4);
+            return;
+        endif;
+
+        // release inode lol
+        R1 = RELEASE_INODE;
+        call RESOURCE_MANAGER;
+        multipop(R1, R2, R3, R4);
+    endif;
+
+    // find free entry in open file table
+    i = OPEN_FILE_TABLE;
+    while (i < OPEN_FILE_TABLE + 128) do
+        if ([i]==-1) then
+            [i] = idx;
+            [i+1] = 1;
+            [i+2] = 0;
+            if (idx != INODE_ROOT) then
+                alias fst R5;
+                fst = FILE_STATUS_TABLE + idx*4 + 1;
+                if ([fst]==-1) then
+                    [fst] = 1;
+                else
+                    [fst] = [fst] + 1;
+                endif;
+            endif;
+            R0 = (i-OPEN_FILE_TABLE)/4;
+            return;
+        endif;
+        i = i + 4;
+    endwhile;
+
+    // no free entries
+    R0 = -2;
+    return;
+endif;
+
+if (functionNum == CLOSE) then
+    alias idx R2;
+    alias oft R3;
+    oft = OPEN_FILE_TABLE + idx*4;
+    [oft+1] = [oft+1] - 1;
+    if ([oft+1]==0) then
+        if ([oft]!=INODE_ROOT) then
+            alias fst R5;
+            fst = FILE_STATUS_TABLE + [oft]*4 + 1;
+            [fst] = [fst] - 1;
+            if ([fst]==0) then
+                [fst] = -1;
+            endif;
+        endif;
+        [oft] = -1;
+        [oft+1] = -1;
+        [oft+2] = -1;
+    endif;
+    return;
+endif;

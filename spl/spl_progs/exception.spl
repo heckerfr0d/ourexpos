@@ -1,0 +1,81 @@
+// set MODE FLAG (in PROCESS TABLE) to exception
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+5*CORE+1]*16 + 9] = -1;
+
+// switch to kernel stack
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+5*CORE+1]*16 + 13] = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+5*CORE+1]*16 + 11]*512 - 1;
+
+backup;
+
+multipush(EIP);
+
+alias userSP R0;
+userSP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+5*CORE+1]*16 + 13];
+
+if(EC != 0) then
+    if(userSP == PTLR*512 -1) then
+        print "StackExhausted";
+    endif;
+    if(EC == 1) then
+        print "IllInstruct!";
+    endif;
+    if(EC == 2) then
+        breakpoint;
+        print "IllegalMemAcc";
+    endif;
+    if(EC == 3) then
+        print "ArithmeticExc";
+    endif;
+
+    // EXIT_PROCESS
+    R1 = 3;
+    R2 = [SYSTEM_STATUS_TABLE+5*CORE+1];
+    call PROCESS_MANAGER;
+
+    call SCHEDULER;
+
+endif;
+
+R1 = ACQUIRE_KERN_LOCK;
+call ACCESS_CONTROL;
+
+
+if (EPN == 2 || EPN == 3) then
+    // heap
+    multipush(R0);
+    R1 = 1;
+    call MEMORY_MANAGER;
+    [PTBR+4] = R0;
+    [PTBR+5] = "1110";
+    call MEMORY_MANAGER;
+    [PTBR+6] = R0;
+    [PTBR+7] = "1110";
+    multipop(R0);
+
+endif;
+
+if (EPN > 3 && EPN < 8) then
+    // code
+    multipush(R0);
+    R1 = 5;
+    R2 = [DISK_MAP_TABLE + 10*[SYSTEM_STATUS_TABLE+5*CORE+1] + EPN];
+    call MEMORY_MANAGER;
+    [PTBR + 2*EPN] = R0;
+    [PTBR + 2*EPN + 1] = "1100";
+    multipop(R0);
+endif;
+
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE+5*CORE+1]*16 + 9] = 0;
+
+R1 = RELEASE_LOCK;
+R2 = KERN_LOCK;
+call ACCESS_CONTROL;
+
+multipop(EIP);
+
+restore;
+
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE+5*CORE+1]*16 + 13] + 1;
+[[PTBR + (SP/512)*2]*512 + SP%512] = EIP;
+
+ireturn;

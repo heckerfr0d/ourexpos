@@ -1,0 +1,174 @@
+alias process_table_entry R4;
+process_table_entry = PROCESS_TABLE + [SYSTEM_STATUS_TABLE+5*CORE+1]*16;
+
+// set MODE FLAG (in PROCESS TABLE) to syscall number
+[process_table_entry + 9] = 8;
+
+// store value of userSP in R0
+alias userSP R0;
+userSP = SP;
+
+// switch to kernel stack
+[process_table_entry + 13] = SP;
+SP = [process_table_entry + 11]*512 - 1;
+
+multipush(R0, R4);
+R1 = ACQUIRE_KERN_LOCK;
+call ACCESS_CONTROL;
+multipop(R0, R4);
+
+alias newPID R1;
+
+// get newPID from getPCBEntry
+multipush(R0, R4);
+R1 = 1;
+call PROCESS_MANAGER;
+newPID = R0;
+multipop(R0, R4);
+
+if (newPID == -1) then
+    // no free PID
+    [process_table_entry + 9] = 0;
+    [[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = -1;
+
+    multipush(R0);
+    R1 = RELEASE_LOCK;
+    R2 = KERN_LOCK;
+    call ACCESS_CONTROL;
+    multipop(R0);
+
+    SP = userSP;
+
+    ireturn;
+endif;
+
+if ([PTBR+4] == -1) then
+    // parent has no heap
+    multipush(R0, R1, R4);
+    R1 = 1;
+    call MEMORY_MANAGER;
+    [PTBR+4] = R0;
+    [PTBR+5] = "0110";
+    R1 = 1;
+    call MEMORY_MANAGER;
+    [PTBR+6] = R0;
+    [PTBR+7] = "0110";
+    multipop(R0, R1, R4);
+endif;
+
+// child pagetb
+alias newptb R5;
+newptb = PAGE_TABLE_BASE + 20*newPID;
+
+alias i R3;
+i = 0;
+while (i < 16) do
+    [newptb + i] = [PTBR + i];
+    [newptb + i + 1] = [PTBR + i + 1];
+    [MEMORY_FREE_LIST + [PTBR+i]] = [MEMORY_FREE_LIST + [PTBR+i]] + 1;
+    i = i + 2;
+endwhile;
+
+// stack
+multipush(R0, R1, R3, R4, R5);
+R1 = 1;
+call MEMORY_MANAGER;
+multipop(R5);
+[newptb+16] = R0;
+[newptb+17] = "0110";
+multipush(R5);
+R1 = 1;
+call MEMORY_MANAGER;
+multipop(R5);
+[newptb+18] = R0;
+[newptb+19] = "0110";
+
+// UAPage
+multipush(R5);
+R1 = 1;
+call MEMORY_MANAGER;
+R1 = RELEASE_LOCK;
+R2 = KERN_LOCK;
+call ACCESS_CONTROL;
+multipop(R1, R3, R4, R5);
+[PROCESS_TABLE + newPID*16 + 11] = R0;
+multipop(R0);
+
+// child proctb
+alias process_table_new R2;
+process_table_new = PROCESS_TABLE + newPID*16;
+[process_table_new] = 0;
+[process_table_new+2] = [SYSTEM_STATUS_TABLE+5*CORE+1];
+[process_table_new+3] = [process_table_entry+3];
+[process_table_new+4] = CREATED;
+[process_table_new+6] = [process_table_entry+6];
+[process_table_new+7] = [process_table_entry+7];
+[process_table_new+9] = 0;
+[process_table_new+10] = [process_table_entry+10];
+[process_table_new+12] = 0;
+[process_table_new+13] = userSP;
+
+
+// copy per-process resource table
+alias l R6;
+alias j R7;
+i = [process_table_new+11]*512 + 496;
+l = i + 16;
+j = [process_table_entry+11]*512 + 496;
+while (i < l) do
+    [i] = [j];
+    [i+1] = [j+1];
+    if ([j]==SEMAPHORE) then
+        [SEMAPHORE_TABLE + [j+1]*4 + 1] = [SEMAPHORE_TABLE + [j+1]*4 + 1] + 1;
+    else
+        if ([j]==FILE) then
+            [OPEN_FILE_TABLE + [j+1]*4 + 1] = [OPEN_FILE_TABLE + [j+1]*4 + 1] + 1;
+        endif;
+    endif;
+    i = i + 2;
+    j = j + 2;
+endwhile;
+
+// copy disk map table
+i = DISK_MAP_TABLE + newPID*10;
+l = i + 10;
+j = DISK_MAP_TABLE + [SYSTEM_STATUS_TABLE+5*CORE+1]*10;
+while (i < l) do
+    [i] = [j];
+    i = i + 1;
+    j = j + 1;
+endwhile;
+
+// copy stack page 1
+i = [newptb+16]*512;
+l = i + 512;
+j = [PTBR+16]*512;
+while (i < l) do
+    [i] = [j];
+    i = i + 1;
+    j = j + 1;
+endwhile;
+
+// copy stack page 2
+i = [newptb+18]*512;
+l = i + 512;
+j = [PTBR+18]*512;
+while (i < l) do
+    [i] = [j];
+    i = i + 1;
+    j = j + 1;
+endwhile;
+
+// push BP
+[[process_table_new + 11]*512] = BP;
+[[PTBR + 2*(userSP-1)/512]*512 + (userSP-1)%512] = newPID;
+[[newptb + 2*(userSP-1)/512]*512 + (userSP-1)%512] = 0;
+
+// reset mode flag
+[process_table_entry + 9] = 0;
+
+
+// switch to user stack
+SP = userSP;
+
+ireturn;
